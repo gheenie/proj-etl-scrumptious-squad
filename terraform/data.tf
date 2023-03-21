@@ -4,25 +4,25 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 
-# data "archive_file" "extraction_zip" {
-#     type        = "zip"
-#     source_file = "${path.module}/../src/extraction.py"
-#     output_path = "${path.module}/../data/extraction.zip"
-# }
+data "archive_file" "extraction_zip" {
+    type        = "zip"
+    source_file = "${path.module}/../src/extraction.py"
+    output_path = "${path.module}/../data/extraction.zip"
+}
 
 
-# data "archive_file" "transform_zip" {
-#     type        = "zip"
-#     source_file = "${path.module}/../src/transform.py"
-#     output_path = "${path.module}/../data/transform.zip"
-# }
+data "archive_file" "transform_zip" {
+    type        = "zip"
+    source_file = "${path.module}/../src/transform.py"
+    output_path = "${path.module}/../data/transform.zip"
+}
 
 
-# data "archive_file" "load_zip" {
-#     type        = "zip"
-#     source_file = "${path.module}/../src/load.py"
-#     output_path = "${path.module}/../data/load.zip"
-# }
+data "archive_file" "load_zip" {
+    type        = "zip"
+    source_file = "${path.module}/../src/load.py"
+    output_path = "${path.module}/../data/load.zip"
+}
 
 
 data "aws_iam_policy_document" "read_from_s3_document" {
