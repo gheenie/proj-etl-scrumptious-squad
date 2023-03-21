@@ -15,3 +15,5 @@ serverless-output.yaml
 *coverage*
 venv/
 *.zip
+.terraform*
+*.tfstate*
