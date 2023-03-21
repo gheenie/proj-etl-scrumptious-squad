@@ -1,0 +1,17 @@
+**/serverless-output.*
+**/.DS_Store
+temp/
+.DS_Store
+serverless-output.yaml
+**/results.xml
+**/.vscode/
+**/build/
+**/dist/
+**/*egg*
+**/*.pyc
+**/.vscode
+**/*_cache
+**/*pycache
+*coverage*
+venv/
+*.zip
