@@ -27,7 +27,7 @@ def connection():
         dbcur.execute(sql)    
         rows = dbcur.fetchall() 
         header = [k[0] for k in dbcur.description]  
-        with open(f'./data/csv/{title[0]}.csv', 'w') as f:
+        with open(f'../data/csv/{title[0]}.csv', 'w') as f:
             writer = csv.writer(f)
             writer.writerow(header)
             for row in rows:

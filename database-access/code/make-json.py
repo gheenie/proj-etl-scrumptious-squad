@@ -27,7 +27,7 @@ def connection():
         rows = dbcur.fetchall()     
         keys = [k[0] for k in dbcur.description]      
         results = [dict(zip(keys, row)) for row in rows]               
-        with open(f'./data/JSON/{title[0]}.json', 'w') as f:
+        with open(f'../data/JSON/{title[0]}.json', 'w') as f:
             f.write(json.dumps(results, indent=4, sort_keys=True, default=str))
 
     dbcur.close()   
