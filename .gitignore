@@ -16,4 +16,4 @@ serverless-output.yaml
 venv/
 *.zip
 .terraform*
-.tfstate*
+*.tfstate*
