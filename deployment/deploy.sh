@@ -3,7 +3,7 @@
 set -e
 set -u 
 
-EMAIL_ADDRESS=$1
+EMAIL_ADDRESS=scrumptious_23@googlegroups.com
 
 # Create SNS topic and subscription
 echo 'Creating SNS topic...'
