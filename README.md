@@ -1,6 +1,6 @@
 # scrumptious-squad-de-jan-23-proj
 
-## Setting up
+## Setting up & Checks
 
 <br/>
 
