@@ -11,9 +11,9 @@ def connection():
      
     conn = pg8000.connect(
         database='totesys',
-        user='project_user_4',
-        password='LC7zJxE3BfvY7p',
-        host='nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com',
+        user='******',
+        password='******',
+        host='******',
         port=5432        
         )
          
