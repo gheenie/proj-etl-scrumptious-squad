@@ -79,3 +79,6 @@ check-coverage:
 
 ## Run all checks
 run-checks: security-test run-flake unit-test check-coverage
+
+# Run Everything
+all: dev-setup run-checks
