@@ -24,6 +24,8 @@ create a virtual environment. To do this run the command
 python -m venv venv
 ```
 it should create a `venv` directory at the root of your project. Run the _activate_ binaries using
+
+Everytime when you create a branch just run the below two commands
 ```sh
 source venv/bin/activate
 ```
@@ -31,6 +33,11 @@ To set up, please run:
 ```sh
 make dev-setup
 ```
+
+
+
+
+
 To check saftey and coverage, please run:
 ```sh
 make run-checks
