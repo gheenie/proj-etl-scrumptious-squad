@@ -1,0 +1,1 @@
+psql --host=nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com --port=5432 --username=project_user_4 --password --dbname=totesys
