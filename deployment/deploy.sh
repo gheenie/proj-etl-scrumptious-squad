@@ -17,4 +17,4 @@ echo "SNS Topic ARN: ${SNS_TOPIC}"
 echo "Subscription: ${SUBSCRIPTION}"
 
 set +u 
-set +e 
+set +e
