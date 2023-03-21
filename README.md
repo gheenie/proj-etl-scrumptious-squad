@@ -21,7 +21,7 @@ pyenv local 3.9.7
 ```
 make the version is installed in the pyenv version.
 
-Create a virtual environment. To do this run:
+The first time you open the repo in VSCode, you need to create a virtual environment. To do this run:
 ```sh
 python -m venv venv
 ```
