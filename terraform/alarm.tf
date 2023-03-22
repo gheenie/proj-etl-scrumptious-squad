@@ -137,3 +137,30 @@ resource "aws_cloudwatch_metric_alarm" "transformation_error_alarm" {
   threshold           = "0"
   alarm_actions       = [aws_sns_topic.error_alerts.arn]
 }
+
+
+resource "aws_cloudwatch_log_metric_filter" "any_error_in_loading_phase" {
+  log_group_name = aws_cloudwatch_log_group.loading_group.name
+
+  name           = "any-error-filter"
+  pattern        = "Error"
+  
+  metric_transformation {
+    name      = "Error_Count"
+    namespace = "scrumptious-space"
+    value     = "1"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "any_error_in_loading_phase_alarm" {
+  metric_name         = aws_cloudwatch_log_metric_filter.any_error_in_loading_phase.metric_transformation[0].name
+  namespace           = aws_cloudwatch_log_metric_filter.any_error_in_loading_phase.metric_transformation[0].namespace
+
+  alarm_name          = "error-in-loading-phase-alarm"
+  evaluation_periods  = "1"
+  period              = "60"
+  statistic           = "Sum"
+  comparison_operator = "GreaterThanThreshold"
+  threshold           = "0"
+  alarm_actions       = [aws_sns_topic.error_alerts.arn]
+}
