@@ -8,3 +8,19 @@ resource "aws_lambda_function" "extraction_lambda" {
     filename = "${path.module}/../data/extraction.zip"
     source_code_hash = data.archive_file.lambda.output-base64sha256
 }
+
+resource "aws_cloudwatch_log_group" "extraction-group" {
+  name = "extraction-group"
+}
+
+resource "aws_cloudwatch_log_group" "transformation-group" {
+  name = "transformation-group"
+}
+
+resource "aws_cloudwatch_log_group" "loading-group" {
+  name = "loading-group"
+}
+
+resource "aws_cloudwatch_log_group" "integration-group" {
+  name = "integration-group"
+}
