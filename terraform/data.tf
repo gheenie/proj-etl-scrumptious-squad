@@ -32,7 +32,8 @@ data "aws_iam_policy_document" "read_from_s3_document" {
         ]
 
         resources = [
-            "${aws_s3_bucket.code_bucket.arn}/*"
+            "${aws_s3_bucket.ingested_data_bucket.arn}/*",
+            "${aws_s3_bucket.processed_data_bucket.arn}/*"
         ]
     }
 }
