@@ -2,8 +2,6 @@
 
 ## Setting up & Checks
 
-<br/>
-
 ### First time only:
 
 Check which pyenv versions you have available:
