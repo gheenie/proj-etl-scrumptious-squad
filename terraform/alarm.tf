@@ -24,7 +24,7 @@ resource "aws_cloudwatch_metric_alarm" "runtime_error_alarm" {
   statistic           = "Sum"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   threshold           = "1"
-  alarm_actions       = [aws_sns_topic.error_alerts.arn]
+  alarm_actions       = [aws_sns_topic.error_notification.arn]
   alarm_description   = "Oh no! We've passed our max runtime!"
 }
 
@@ -43,7 +43,7 @@ resource "aws_cloudwatch_metric_alarm" "nearing_max_runtime_alarm" {
   statistic           = "Maximum"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   threshold           = "600"
-  alarm_actions       = [aws_sns_topic.error_alerts.arn]
+  alarm_actions       = [aws_sns_topic.error_notification.arn]
   alarm_description   = "Uh-oh! We're nearing a runtime error!"
 }
 
@@ -75,7 +75,7 @@ resource "aws_cloudwatch_metric_alarm" "data_integrity_alarm" {
   comparison_operator = "GreaterThanThreshold"
   threshold           = "0"
   alarm_description   = "Data integrity violation detected"
-  alarm_actions       = [aws_sns_topic.error_alerts.arn]
+  alarm_actions       = [aws_sns_topic.error_notification.arn]
 }
 
 
@@ -106,7 +106,7 @@ resource "aws_cloudwatch_metric_alarm" "data_validation_alarm" {
   comparison_operator = "GreaterThanThreshold"
   threshold           = "0"
   alarm_description   = "Data validation failed"
-  alarm_actions       = [aws_sns_topic.error_alerts.arn]
+  alarm_actions       = [aws_sns_topic.error_notification.arn]
 }
 
 
@@ -135,7 +135,7 @@ resource "aws_cloudwatch_metric_alarm" "transformation_error_alarm" {
   statistic           = "Sum"
   comparison_operator = "GreaterThanThreshold"
   threshold           = "0"
-  alarm_actions       = [aws_sns_topic.error_alerts.arn]
+  alarm_actions       = [aws_sns_topic.error_notification.arn]
 }
 
 
@@ -162,5 +162,5 @@ resource "aws_cloudwatch_metric_alarm" "any_error_in_loading_phase_alarm" {
   statistic           = "Sum"
   comparison_operator = "GreaterThanThreshold"
   threshold           = "0"
-  alarm_actions       = [aws_sns_topic.error_alerts.arn]
+  alarm_actions       = [aws_sns_topic.error_notification.arn]
 }
