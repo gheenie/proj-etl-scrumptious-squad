@@ -140,30 +140,3 @@ resource "aws_cloudwatch_metric_alarm" "transformation_error_alarm" {
   threshold           = "0"
   alarm_actions       = [aws_sns_topic.error_alerts.arn]
 }
-
-
-# Total runtime - from inital s3 bucket to data warehouse
-
-resource "aws_cloudwatch_log_metric_filter" "total-runtime-metric-filter" {
-  name           = "total-runtime-metric-filter"
-  log_group_name = "integration-group"
-  pattern        = "Total Runtime Exceeded"
-  metric_transformation {
-    name      = "total-runtime-metric"
-    namespace = "LogMetrics"
-    value     = "900"
-  }
-}
-resource "aws_cloudwatch_metric_alarm" "total-runtime-alarm" {
-  alarm_name          = "total-runtime-alarm"
-  metric_name         = "total-runtime-metric"
-  threshold           = "900"
-  statistic           = "Maximum"
-  comparison_operator = "GreaterThanThreshold"
-  datapoints_to_alarm = "1"
-  evaluation_periods  = "1"
-  period              = "60"
-  namespace           = "LogMetrics"
-  alarm_description   = "Total runtime exceeded threshold of 15 minutes"
-  alarm_actions       = [aws_sns_topic.error_alerts.arn]
-}
