@@ -52,7 +52,6 @@ resource "aws_cloudwatch_metric_alarm" "nearing_max_runtime_alarm" {
 
 resource "aws_cloudwatch_log_metric_filter" "data_integrity_metric_filter" {
   log_group_name = aws_cloudwatch_log_group.extraction_group.name
-  depends_on     = [aws_cloudwatch_log_group.extraction_group]
 
   name           = "data-integrity-metric-filter"
   pattern        = "Data Integrity Violation"
@@ -84,7 +83,6 @@ resource "aws_cloudwatch_metric_alarm" "data_integrity_alarm" {
 
 resource "aws_cloudwatch_log_metric_filter" "data_validation_metric_filter" {
   log_group_name = aws_cloudwatch_log_group.extraction_group.name
-  depends_on     = [aws_cloudwatch_log_group.extraction_group]
 
   name           = "data-validation-metric-filter"
   pattern        = "Data Validation Failed"
@@ -116,7 +114,6 @@ resource "aws_cloudwatch_metric_alarm" "data_validation_alarm" {
 
 resource "aws_cloudwatch_log_metric_filter" "transformation_error_metric_filter" {
   log_group_name = aws_cloudwatch_log_group.transformation_group.name
-  depends_on     = [aws_cloudwatch_log_group.transformation_group]
 
   name           = "transformation-error-metric-filter"
   pattern        = "Transformation Error"
