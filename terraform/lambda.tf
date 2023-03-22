@@ -6,5 +6,5 @@ resource "aws_lambda_function" "extraction_lambda" {
     handler = "extraction.someting"
     # Links to a zip file, not a bucket & object
     filename = "${path.module}/../data/extraction.zip"
-    source_code_hash = data.archive_file.lambda.output-base64sha256
+    source_code_hash = data.archive_file.extraction_zip.output_base64sha256
 }
