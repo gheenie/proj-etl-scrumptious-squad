@@ -1,6 +1,6 @@
-variable "extraction_lambda_name" {
+variable "extract_lambda_name" {
     type = string
-    default = "extraction-lambda"
+    default = "extract-lambda"
 }
 
 
