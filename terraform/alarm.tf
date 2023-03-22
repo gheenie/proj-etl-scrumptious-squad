@@ -1,38 +1,44 @@
-# Runtime for all functions
-resource "aws_cloudwatch_log_metric_filter" "runtime_error" {
-  name = "runtime-error"
-  pattern = "Runtime Error"
-  log_group_name = "integration-group"
+# Monitor execution time for all functions
 
+resource "aws_cloudwatch_log_metric_filter" "runtime_error" {
+  log_group_name = aws_cloudwatch_log_group.integration_group.name
+  depends_on     = [aws_cloudwatch_log_group.integration_group]
+
+  name           = "runtime-error-filter"
+  pattern        = "RuntimeError"
+  
   metric_transformation {
-    name = "Exceeded_Allowed_Runtime"
+    name      = "Exceeded_Allowed_Runtime_Count"
     namespace = "scrumptious-space"
-    value = "1"
+    value     = "1"
   }
-  depends_on = [aws_cloudwatch_log_group.integration-group]
 }
+
 resource "aws_cloudwatch_metric_alarm" "alert_runtime_errors" {
-  alarm_name = "alert_runtime_errors"
+  metric_name         = aws_cloudwatch_log_metric_filter.runtime_error.metric_transformation[0].name
+  namespace           = aws_cloudwatch_log_metric_filter.runtime_error.metric_transformation[0].name
+
+  alarm_name          = "alert_runtime_errors"
+  evaluation_periods  = "1"
+  period              = "60"
+  statistic           = "Sum"
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods = "1"
-  metric_name = "Multiple_Of_Three"
-  namespace = "scrumptious-space"
-  period = "60"
-  statistic = "Sum"
-  threshold = "1"
-  alarm_actions = ["arn:aws:sns:us-east-1:${var.subscription_arn}:test-error-alerts"]
-  alarm_description = "Oh no! We've passed our max runtime!"
+  threshold           = "1"
+  alarm_actions       = [aws_sns_topic_subscription.error_alerts_email_target.arn]
+  alarm_description   = "Oh no! We've passed our max runtime!"
 }
+
 resource "aws_cloudwatch_metric_alarm" "alert_nearing_max_runtime" {
+  metric_name = "Duration"
+  namespace = "AWS/Lambda"
+
   alarm_name = "alert_nearing_max_runtime"
   comparison_operator = "GreaterThanOrEqualToThreshold"
   evaluation_periods = "1"
-  metric_name = "Duration"
-  namespace = "AWS/Lambda"
   period = "60"
   statistic = "Maximum"
   threshold = "600"
-  alarm_actions = ["arn:aws:sns:us-east-1:${var.subscription_arn}:test-error-alerts"]
+  alarm_actions = [aws_sns_topic_subscription.error_alerts_email_target.arn]
   alarm_description = "Uh-oh! We're nearing a runtime error!"
 }
 
@@ -61,7 +67,7 @@ resource "aws_cloudwatch_metric_alarm" "data-integrity-alarm" {
   period              = "60"
   namespace           = "LogMetrics"
   alarm_description   = "Data integrity violation detected"
-  alarm_actions       = ["arn:aws:sns:us-east-1:${var.subscription_arn}:test-error-alerts"]
+  alarm_actions       = [aws_sns_topic_subscription.error_alerts_email_target.arn]
 }
 
 
@@ -89,7 +95,7 @@ resource "aws_cloudwatch_metric_alarm" "data-validation-alarm" {
   period              = "60"
   namespace           = "LogMetrics"
   alarm_description   = "Data validation failed"
-  alarm_actions       = ["arn:aws:sns:us-east-1:${var.subscription_arn}:test-error-alerts"]
+  alarm_actions       = [aws_sns_topic_subscription.error_alerts_email_target.arn]
 }
 
 
@@ -115,7 +121,7 @@ resource "aws_cloudwatch_metric_alarm" "transformation-error-alarm" {
   evaluation_periods  = "1"
   threshold           = "0"
   comparison_operator = "GreaterThanThreshold"
-  alarm_actions       = ["arn:aws:sns:us-east-1:${var.subscription_arn}:test-error-alerts"]
+  alarm_actions       = [aws_sns_topic_subscription.error_alerts_email_target.arn]
 }
 
 
@@ -142,5 +148,5 @@ resource "aws_cloudwatch_metric_alarm" "total-runtime-alarm" {
   period              = "60"
   namespace           = "LogMetrics"
   alarm_description   = "Total runtime exceeded threshold of 15 minutes"
-  alarm_actions       = ["arn:aws:sns:us-east-1:${var.subscription_arn}:test-error-alerts"]
+  alarm_actions       = [aws_sns_topic_subscription.error_alerts_email_target.arn]
 }
