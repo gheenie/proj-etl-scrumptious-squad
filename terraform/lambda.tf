@@ -23,6 +23,7 @@ resource "aws_cloudwatch_log_group" "loading-group" {
 
 resource "aws_cloudwatch_log_group" "integration-group" {
   name = "integration-group"
+}
 
 resource "aws_lambda_function" "extract_lambda" {
     function_name = var.extract_lambda_name
