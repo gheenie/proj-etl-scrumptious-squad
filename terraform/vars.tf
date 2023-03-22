@@ -30,3 +30,8 @@ variable "processed_data_bucket_prefix" {
     type = string
     default = "scrumptious-squad-pr-data-"
 }
+
+variable "subscription_arn" {
+    type = number
+    default = 962685537040
+}
