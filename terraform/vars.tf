@@ -21,12 +21,20 @@ variable "ingested_data_bucket_prefix" {
     default = "scrumptious-squad-in-data-"
 }
 
+
 variable "processed_data_bucket_prefix" {
     type    = string
     default = "scrumptious-squad-pr-data-"
 }
 
+
 variable "sns_group_email" {
     type    = string
     default = "scrumptious23@yahoo.com"
+}
+
+
+variable "subscription_arn" {
+    type = number
+    default = 962685537040
 }
