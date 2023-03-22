@@ -14,11 +14,11 @@ resource "aws_cloudwatch_log_metric_filter" "runtime_error" {
   }
 }
 
-resource "aws_cloudwatch_metric_alarm" "alert_runtime_errors" {
+resource "aws_cloudwatch_metric_alarm" "runtime_error_alarm" {
   metric_name         = aws_cloudwatch_log_metric_filter.runtime_error.metric_transformation[0].name
   namespace           = aws_cloudwatch_log_metric_filter.runtime_error.metric_transformation[0].namespace
 
-  alarm_name          = "alert_runtime_errors"
+  alarm_name          = "runtime-error-alarm"
   evaluation_periods  = "1"
   period              = "60"
   statistic           = "Sum"
@@ -28,7 +28,7 @@ resource "aws_cloudwatch_metric_alarm" "alert_runtime_errors" {
   alarm_description   = "Oh no! We've passed our max runtime!"
 }
 
-resource "aws_cloudwatch_metric_alarm" "alert_nearing_max_runtime" {
+resource "aws_cloudwatch_metric_alarm" "nearing_max_runtime_alarm" {
   dimensions = {
         "FunctionName" = aws_lambda_function.extract_lambda.function_name
         # Will inserting multiple functions here work?
@@ -37,7 +37,7 @@ resource "aws_cloudwatch_metric_alarm" "alert_nearing_max_runtime" {
   metric_name         = "Duration"
   namespace           = "AWS/Lambda"
 
-  alarm_name          = "alert_nearing_max_runtime"
+  alarm_name          = "nearing-max-runtime-alarm"
   evaluation_periods  = "1"
   period              = "60"
   statistic           = "Maximum"
