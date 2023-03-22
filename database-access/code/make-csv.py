@@ -10,10 +10,10 @@ def connection():
     AND table_type= 'BASE TABLE';"""
      
     conn = pg8000.connect(
-        database='totesys',
-        user='******',
-        password='******',
-        host='******',
+        database=input("database"),
+        user=input("user"),
+        password=input("password"),
+        host= input("host")
         port=5432        
         )
          
