@@ -35,21 +35,6 @@ resource "aws_lambda_function" "load_lambda" {
 }
 
 
-resource "aws_cloudwatch_log_group" "extraction_group" {
-    name = "extraction-group"
-}
-
-
-resource "aws_cloudwatch_log_group" "transformation_group" {
-    name = "transformation-group"
-}
-
-
-resource "aws_cloudwatch_log_group" "loading_group" {
-    name = "loading-group"
-}
-
-
 resource "aws_cloudwatch_log_group" "integration_group" {
     name = "integration-group"
 }

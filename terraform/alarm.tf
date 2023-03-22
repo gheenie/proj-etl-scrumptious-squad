@@ -51,7 +51,7 @@ resource "aws_cloudwatch_metric_alarm" "nearing_max_runtime_alarm" {
 # Monitor for Data Integrity Violation appearing in log text during extraction.
 
 resource "aws_cloudwatch_log_metric_filter" "data_integrity_metric_filter" {
-  log_group_name = aws_cloudwatch_log_group.extraction_group.name
+  log_group_name = "/aws/lambda/${aws_lambda_function.extract_lambda.function_name}"
   depends_on     = [aws_cloudwatch_log_group.extraction_group]
 
   name           = "data-integrity-metric-filter"
@@ -83,7 +83,7 @@ resource "aws_cloudwatch_metric_alarm" "data_integrity_alarm" {
 # Monitor for Data Validation Failed appearing in log text during extraction.
 
 resource "aws_cloudwatch_log_metric_filter" "data_validation_metric_filter" {
-  log_group_name = aws_cloudwatch_log_group.extraction_group.name
+  log_group_name = "/aws/lambda/${aws_lambda_function.extract_lambda.function_name}"
   depends_on     = [aws_cloudwatch_log_group.extraction_group]
 
   name           = "data-validation-metric-filter"
@@ -115,7 +115,7 @@ resource "aws_cloudwatch_metric_alarm" "data_validation_alarm" {
 # Monitor for Transformation Error appearing in log text during transformation.
 
 resource "aws_cloudwatch_log_metric_filter" "transformation_error_metric_filter" {
-  log_group_name = aws_cloudwatch_log_group.transformation_group.name
+  log_group_name = "/aws/lambda/${aws_lambda_function.transform_lambda.function_name}"
   depends_on     = [aws_cloudwatch_log_group.transformation_group]
 
   name           = "transformation-error-metric-filter"
