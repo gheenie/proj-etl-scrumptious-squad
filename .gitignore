@@ -17,3 +17,4 @@ venv/
 *.zip
 .terraform*
 *.tfstate*
+*setup-test-db.txt
