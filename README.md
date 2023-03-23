@@ -31,18 +31,6 @@ A `venv` directory should be created at the root of your project.
 
 <br/>
 
-### Every time:
-To activate the environment:
-```sh
-source venv/bin/activate
-```
-To set up, please run:
-```sh
-make dev-setup
-```
-
-<br/>
-
 ### Sitatuational:
 To check saftey and coverage, please run:
 ```sh
