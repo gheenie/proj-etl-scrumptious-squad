@@ -29,7 +29,6 @@ soupsieve==2.4
 mistune==2.0.5
 debugpy==1.6.6
 wcwidth==0.2.6
-boto3==1.26.85
 jmespath==1.0.1
 webcolors==1.12
 pycparser==2.21
