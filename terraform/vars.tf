@@ -32,9 +32,3 @@ variable "sns_group_email" {
     type    = string
     default = "scrumptious23@yahoo.com"
 }
-
-
-variable "subscription_arn" {
-    type = number
-    default = 962685537040
-}
