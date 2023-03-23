@@ -29,11 +29,9 @@ def pull_secrets():
         else:           
             return(f'ERROR : {error_code}')
     else:
-        with open('secrets.json', 'w') as f:
-            
-            f.write(response['SecretString'])
         
-            print(f"{response['Name']} saved in local file 'secrets.json'")
+        
+           
                  
 
         #return results
@@ -58,12 +56,10 @@ def check_table_exists(title):
         
 
 def get_table(dbcur, title):
-    sql = f'SELECT * FROM {title[0]}'  
-    print(title)
+    sql = f'SELECT * FROM {title[0]}'    
     dbcur.execute(sql)
     rows = dbcur.fetchall()     
-    keys = [k[0] for k in dbcur.description] 
-    #print([dict(zip(keys, row)) for row in rows])
+    keys = [k[0] for k in dbcur.description]   
     return rows, keys
 
 
@@ -90,7 +86,7 @@ def get_most_recent_time(title):
     creations = []
     
     #read existing values
-    table = pd.read_parquet(f"./database-access/data/parquet/{title[0]}.parquet", engine='pyarrow')
+    table = pd.read_parquet(f"./database-access/data/parquet/{title[0]}.parquet", engine='pyarrow')   
 
 
     #compile a sorted list of 'last_updated' values and another sorted list of 'created_at' values existing inside previous readings
@@ -113,7 +109,8 @@ def check_each_table(tables, dbcur):
     to_be_added= []
     for title in tables:
         #if there are no existing parquet files storing our data, create them
-        if not check_table_exists(title):                                      
+        if not check_table_exists(title): 
+            print("here")                                     
             rows, keys = get_table(dbcur, title)
             to_be_added.append({title[0]: pd.DataFrame(rows, columns=keys)})
         else:
@@ -174,7 +171,7 @@ def index():
 
     #execute SQL query for finding a list of table names inside RDS and store it inside tables variable
     tables = get_titles(dbcur)
-    print(tables)
+  
 
 
     #iterate through the table_names and check for any values which need to updated, storing them in the 'updates' variable
