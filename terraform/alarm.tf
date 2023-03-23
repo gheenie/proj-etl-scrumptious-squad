@@ -139,6 +139,8 @@ resource "aws_cloudwatch_metric_alarm" "transformation_error_alarm" {
 }
 
 
+# Monitor for Error appearing in log text during loading.
+
 resource "aws_cloudwatch_log_metric_filter" "any_error_in_loading_phase" {
   log_group_name = aws_cloudwatch_log_group.loading_group.name
 
