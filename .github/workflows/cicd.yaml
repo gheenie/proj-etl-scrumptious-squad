@@ -1,0 +1,64 @@
+---
+
+name: deploy-etl-apps
+
+on:
+  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - main
+
+jobs:
+  run-tests:
+    name: Setup environment and run tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+      - name: Get Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install Make
+        run: sudo apt install make -y
+      - name: Install dependencies and run checks
+        run: make all
+  
+  deployment:
+    name: deployment
+    runs-on: ubuntu-latest
+    needs: run-tests
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+      - name: Configure Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: us-east-1
+      - name: create tfstate bucket - Terraform Init
+        run: terraform init
+        working-directory: ./terraform/create_secrets_bucket
+      - name: create tfstate bucket - Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: ./terraform/create_secrets_bucket
+        # Will fail if bucket exists in your account OR in the internet.
+        # Ignore the error, if the existing bucket is not yours the later code will fail anyway.
+        continue-on-error: true
+      - name: main Terraform Init
+        run: terraform init
+        working-directory: ./terraform
+      - name: main Terraform Plan
+        id: plan
+        run: terraform plan
+        working-directory: ./terraform
+      - name: main Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+        working-directory: ./terraform
+      - name: main Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: ./terraform
