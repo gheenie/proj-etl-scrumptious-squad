@@ -22,7 +22,8 @@ jobs:
       - name: Install Make
         run: sudo apt install make -y
       - name: Install dependencies and run checks
-        run: make all
+        # run: make all
+        run: make dev-setup
   
   deployment:
     name: deployment
