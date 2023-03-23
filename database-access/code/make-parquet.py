@@ -9,7 +9,8 @@ import sys
 import boto3
 import json
 from botocore.exceptions import ClientError
-import pymysql
+import psycopg
+
 
 def pull_secrets():
     #get secret_id for secret
@@ -31,12 +32,22 @@ def pull_secrets():
         with open('secrets.json', 'w') as f:
             
             f.write(response['SecretString'])
-            #print success message
+        
             print(f"{response['Name']} saved in local file 'secrets.json'")
                  
 
         #return results
         return json.loads(response['SecretString'])
+    
+
+def get_titles(dbcur):
+    sql = """SELECT table_name
+    FROM information_schema.tables
+    WHERE table_schema='public'
+    AND table_type= 'BASE TABLE';"""
+    dbcur.execute(sql)
+    return dbcur.fetchall()  
+
      
      
 def check_table_exists(title):    
@@ -47,17 +58,31 @@ def check_table_exists(title):
         
 
 def get_table(dbcur, title):
-    sql = f'SELECT * FROM {title[0]}'     
-    qstr = "SELECT * FROM {0} WHERE counterparty_id > 0".format(title[0])  
-    #name={'name':'ounterparty_id'}
-    print(qstr)    
+    sql = f'SELECT * FROM {title[0]}'  
     print(title)
     dbcur.execute(sql)
     rows = dbcur.fetchall()     
     keys = [k[0] for k in dbcur.description] 
-    print([dict(zip(keys, row)) for row in rows])
+    #print([dict(zip(keys, row)) for row in rows])
     return rows, keys
 
+
+
+
+def make_connection():
+    conn = pg8000.connect(
+    database='totesys',
+    user='project_user_4',
+    password='LC7zJxE3BfvY7p',
+    host='nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com',
+    port=5432        
+    )
+
+    return conn      
+
+
+     
+     
 
 def get_most_recent_time(title):
     #function to find most recent update and creation times for table rows to check which values need to be updated
@@ -82,79 +107,38 @@ def get_most_recent_time(title):
         'created_at': last_update,
         'last_updated': last_creation
     }
- 
-
-def get_updates(): 
-
-    #function to connect to AWS RDS, find a list of table names, iterate through them and evaluate whether there any updates to make.
-    #if not exit the programme.
-    #if so, return a list of all neccessary updates in pandas parquet format
-     
-     #connect to AWS RDS
-    # conn = pg8000.connect(
-    #     database='totesys',
-    #     user='project_user_4',
-    #     password='LC7zJxE3BfvY7p',
-    #     host='nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com',
-    #     port=5432        
-    #     )         
-    # dbcur = conn.cursor()
-
-    database='totesys',
-    user='project_user_4',
-    password='LC7zJxE3BfvY7p',
-    host='nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com',
-    port=5432  
-
-    connection = pymysql.connect(host, port, user,passwd=password,db=database,)
-
-    print("here")
-
-    dbcur = connection.cursor()
 
 
-    
 
-    #execute SQL query for finding a list of table names inside RDS and store it inside tables variable
-    sql = """SELECT table_name
-    FROM information_schema.tables
-    WHERE table_schema='public'
-    AND table_type= 'BASE TABLE';"""
-    dbcur.execute(sql)
-    tables = dbcur.fetchall()  
-    print(tables)
-
-    #iterate through the table_names and check for any values which need to updated, storing them in the 'to_be_added' variable
-    to_be_added = []
+def check_each_table(tables, dbcur):
+    to_be_added= []
     for title in tables:
         #if there are no existing parquet files storing our data, create them
         if not check_table_exists(title):                                      
-             rows, keys = get_table(dbcur, title)
-             to_be_added.append({title[0]: pd.DataFrame(rows, columns=keys)})
+            rows, keys = get_table(dbcur, title)
+            to_be_added.append({title[0]: pd.DataFrame(rows, columns=keys)})
         else:
-             #extract the most recent readings
-             most_recent_readings = get_most_recent_time(title)
+            #extract the most recent readings
+            most_recent_readings = get_most_recent_time(title)
 
-             #extract raw data
-             rows, keys = get_table(dbcur, title)
-             results = [dict(zip(keys, row)) for row in rows]
+            #extract raw data
+            rows, keys = get_table(dbcur, title)
+            results = [dict(zip(keys, row)) for row in rows]
 
-             #filter data to find readings with a more recent 'creation time' or 'update time' than our most recent readings have             
-             new_rows = [row for row in results if row['created_at'] > most_recent_readings['created_at'] or row['last_updated'] > most_recent_readings['last_updated']]                              
-             
-             #if there any readings, add them to a dict with the table title as a key.             
-             #append them into the to_be_added list
-             #pd.DataFrame will transform the data into a pandas parquet format
-             #if there are no updates to make, exit the programme.
-             if len(new_rows) > 0:to_be_added.append({title[0]: pd.DataFrame(new_rows)})
-             else: sys.exit("No Updates To Make")     
-                 
-                                  
-                 
-    #close connection
-    dbcur.close()  
+            #filter data to find readings with a more recent 'creation time' or 'update time' than our most recent readings have             
+            new_rows = [row for row in results if row['created_at'] > most_recent_readings['created_at'] or row['last_updated'] > most_recent_readings['last_updated']]                              
+            
+            #if there any readings, add them to a dict with the table title as a key.             
+            #append them into the to_be_added list
+            #pd.DataFrame will transform the data into a pandas parquet format
+            #if there are no updates to make, exit the programme.
+            if len(new_rows) > 0:to_be_added.append({title[0]: pd.DataFrame(new_rows)})
 
-    #return list of dicts with all values taken after our previous 'most recent'.    
+    for keyval in to_be_added:
+        for value in keyval.values():
+            print(value)
+        
+
     return to_be_added
 
 
@@ -162,20 +146,50 @@ def push_to_cloud(object):
         #seperate key and value from object              
         key = [key for key in object.keys()][0]
         values = object[key] 
-        print(key)
+  
         #use key for file name, and value as the content for the file       
         values.to_parquet(f"./database-access/data/parquet/{key}.parquet") 
-        print("success")
+     
         return True
 
 
-def  add_updates():
-    #iterate through the list of dicts that need to be updated and then    
-    updates = get_updates()    
+def  add_updates(updates):
+    #iterate through the list of dicts that need to be updated     
     for object in updates:                 
          push_to_cloud(object)
-    print('success')
-        
 
-add_updates()
+ 
+
+def index(): 
+
+    #function to connect to AWS RDS, find a list of table names, iterate through them and evaluate whether there any updates to make.
+    #if not exit the programme.
+    #if so, return a list of all neccessary updates in pandas parquet format
+     
+     #connect to AWS RDS 
+    conn = make_connection()        
+    dbcur = conn.cursor()
+    
+
+    #execute SQL query for finding a list of table names inside RDS and store it inside tables variable
+    tables = get_titles(dbcur)
+    print(tables)
+
+
+    #iterate through the table_names and check for any values which need to updated, storing them in the 'updates' variable
+    updates = check_each_table(tables, dbcur)                 
+                                  
+                 
+    #close connection
+    dbcur.close() 
+    return 1 
+
+    add_updates(updates)
+
+
+
+index()
+
+
+
 
