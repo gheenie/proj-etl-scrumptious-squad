@@ -1,6 +1,6 @@
 # scrumptious-squad-de-jan-23-proj
 
-## Setting up & Checks
+## Initial set up & Checks
 
 ### First time only:
 
@@ -45,3 +45,17 @@ To deactivate your virtual environment:
 ```sh
 deactivate
 ```
+
+## Deploying into a new sandbox
+1. Within terraform/vars.tf, ensure the email within the email variable is correct.
+2. cd into terraform/create_secrets_bucket and run:
+```sh
+terraform init
+```
+```sh
+terraform plan
+```
+```sh
+terraform apply
+```
+3. cd out to the main terraform directory and run the same commands again. This will initialise the data structure and create a topic & subscription to allow Cloudwatch email alerts. To receive alerts, confirm the subscription from your email.
