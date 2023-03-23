@@ -13,7 +13,7 @@ def connection():
         database=input("database"),
         user=input("user"),
         password=input("password"),
-        host= input("host")
+        host= input("host"),
         port=5432        
         )
          
