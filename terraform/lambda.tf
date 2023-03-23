@@ -5,8 +5,8 @@ resource "aws_lambda_function" "extract_lambda" {
     # Name of the .py file with handler in goes below 
     handler = "extract.someting"
     # Links to a zip file, not a bucket & object
-    filename = "${path.module}/../data/extract.zip"
-    source_code_hash = data.archive_file.extraction_zip.output_base64sha256
+    filename = var.extract_archive_output_path
+    source_code_hash = data.archive_file.extract_zip.output_base64sha256
 }
 
 
@@ -17,7 +17,7 @@ resource "aws_lambda_function" "transform_lambda" {
     # Name of the .py file with handler in goes below 
     handler = "transform.something"
     # Links to a zip file, not a bucket & object
-    filename = "${path.module}/../data/transform.zip"
+    filename = var.transform_archive_output_path
     source_code_hash = data.archive_file.transform_zip.output_base64sha256
 }
 
@@ -29,7 +29,7 @@ resource "aws_lambda_function" "load_lambda" {
     # Name of the .py file with handler in goes below 
     handler = "load.something"
     # Links to a zip file, not a bucket & object
-    filename = "${path.module}/../data/load.zip"
+    filename = var.load_archive_output_path
     source_code_hash = data.archive_file.load_zip.output_base64sha256
 
 }

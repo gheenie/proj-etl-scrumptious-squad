@@ -4,24 +4,24 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 
-data "archive_file" "extraction_zip" {
+data "archive_file" "extract_zip" {
     type        = "zip"
-    source_file = "${path.module}/../src/extract.py"
-    output_path = "${path.module}/../data/extract.zip"
+    source_file = var.extract_archive_source_path
+    output_path = var.extract_archive_output_path
 }
 
 
 data "archive_file" "transform_zip" {
     type        = "zip"
-    source_file = "${path.module}/../src/transform.py"
-    output_path = "${path.module}/../data/transform.zip"
+    source_file = var.transform_archive_source_path
+    output_path = var.transform_archive_output_path
 }
 
 
 data "archive_file" "load_zip" {
     type        = "zip"
-    source_file = "${path.module}/../src/load.py"
-    output_path = "${path.module}/../data/load.zip"
+    source_file = var.load_archive_source_path
+    output_path = var.load_archive_output_path
 }
 
 
