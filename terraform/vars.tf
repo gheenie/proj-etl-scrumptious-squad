@@ -6,37 +6,37 @@ variable "sns_group_email" {
 
 variable "extract_archive_source_path" {
     type    = string
-    default = "${path.module}/../src/extract.py"
+    default = "./../src/extract.py"
 }
 
 
 variable "extract_archive_output_path" {
     type    = string
-    default = "${path.module}/../data/extract.zip"
+    default = "./../data/extract.zip"
 }
 
 
 variable "transform_archive_source_path" {
     type    = string
-    default = "${path.module}/../src/transform.py"
+    default = "./../src/transform.py"
 }
 
 
 variable "transform_archive_output_path" {
     type    = string
-    default = "${path.module}/../data/transform.zip"
+    default = "./../data/transform.zip"
 }
 
 
 variable "load_archive_source_path" {
     type    = string
-    default = "${path.module}/../src/load.py"
+    default = "./../src/load.py"
 }
 
 
 variable "load_archive_output_path" {
     type    = string
-    default = "${path.module}/../data/load.zip"
+    default = "./../data/load.zip"
 }
 
 
