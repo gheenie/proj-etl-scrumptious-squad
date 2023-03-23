@@ -3,13 +3,10 @@ import pg8000
 import pandas as pd
 import pyarrow as pq
 from os.path import isfile
-from datetime import datetime
 import bisect
-import sys
 import boto3
 import json
 from botocore.exceptions import ClientError
-import psycopg
 
 
 def pull_secrets():
