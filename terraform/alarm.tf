@@ -28,6 +28,34 @@ resource "aws_cloudwatch_metric_alarm" "runtime_error_alarm" {
   alarm_description   = "Oh no! We've passed our max runtime!"
 }
 
+resource "aws_cloudwatch_log_metric_filter" "total_runtime_error" {
+  log_group_name = aws_cloudwatch_log_group.integration_group.name
+  depends_on     = [aws_cloudwatch_log_group.integration_group]
+
+  name           = "total-runtime-exceeded-filter"
+  pattern        = "Total Runtime Exceeded"
+  
+  metric_transformation {
+    name      = "Exceeded_Allowed_Total_Runtime_Count"
+    namespace = "scrumptious-space"
+    value     = "1"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "total_runtime_error_alarm" {
+  metric_name         = aws_cloudwatch_log_metric_filter.total_runtime_error.metric_transformation[0].name
+  namespace           = aws_cloudwatch_log_metric_filter.total_runtime_error.metric_transformation[0].namespace
+
+  alarm_name          = "total-runtime-error-alarm"
+  evaluation_periods  = "1"
+  period              = "60"
+  statistic           = "Sum"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  threshold           = "1"
+  alarm_actions       = [aws_sns_topic.error_notification.arn]
+  alarm_description   = "Oh no! We've passed our max runtime for the entire process!"
+}
+
 resource "aws_cloudwatch_metric_alarm" "nearing_max_runtime_alarm" {
   dimensions = {
         "FunctionName" = aws_lambda_function.extract_lambda.function_name
