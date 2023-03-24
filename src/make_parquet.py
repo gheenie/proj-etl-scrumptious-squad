@@ -12,6 +12,7 @@ import sys
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+from set_up.read_buck import (get_parquet, check_table_in_bucket)
 
 
 
@@ -100,7 +101,7 @@ def make_connection(dotenv_path_string):
     
     return conn
 
-     
+
      
 
 def get_most_recent_time(title):
@@ -110,7 +111,10 @@ def get_most_recent_time(title):
     creations = []
     
     #read existing values
-    table = pd.read_parquet(f"./database_access/data/parquet/{title[0]}.parquet", engine='pyarrow')   
+
+    #table = pd.read_parquet(f"./database-access/data/parquet/{title[0]}.parquet", engine='pyarrow')
+    table = get_parquet(title[0]) 
+       
 
     #compile a sorted list of 'last_updated' values and another sorted list of 'created_at' values existing inside previous readings
     for date in set(table['last_updated']):bisect.insort(updates, date)
@@ -132,8 +136,8 @@ def check_each_table(tables, dbcur):
     to_be_added= []
     for title in tables:
         #if there are no existing parquet files storing our data, create them
-        if not check_table_exists(title): 
-            print("here")                                     
+        if not check_table_in_bucket(title): 
+            print(title, "to be added")                                     
             rows, keys = get_table(dbcur, title)
             to_be_added.append({title[0]: pd.DataFrame(rows, columns=keys)})
         else:
@@ -151,12 +155,17 @@ def check_each_table(tables, dbcur):
             #append them into the to_be_added list
             #pd.DataFrame will transform the data into a pandas parquet format
             #if there are no updates to make, exit the programme.
+            print(title)
+            if len(new_rows) >0:print("is newer")
+            else: print("is not new")
+            
+            #if len(new_rows) > 0:print({title[0]: pd.DataFrame(new_rows)})
             if len(new_rows) > 0:to_be_added.append({title[0]: pd.DataFrame(new_rows)})
 
     # for keyval in to_be_added:
     #     for value in keyval.values():
     #         print(value)     
-
+   
     return to_be_added
 
 
@@ -166,29 +175,21 @@ def push_to_cloud(object):
         values = object[key] 
 
         #use key for file name, and value as the content for the file       
-        values.to_parquet(f"./database_access/data/parquet/{key}.parquet") 
+        values.to_parquet(f'./database-access/data/parquet/{key}.parquet') 
 
         print(key)
 
-        # s3 = boto3.client('s3')
-        # response = s3.list_buckets()
-        # bucketname = [bucket['Name'] for bucket in response['Buckets']][0]   
+        s3 = boto3.client('s3')
+        response = s3.list_buckets()
+        bucketname = 'nicebucket1679649834'  
 
-        # out_buffer = BytesIO()
-        # values.to_parquet(out_buffer, index=False, compression="gzip")
+        out_buffer = BytesIO()
+        values.to_parquet(out_buffer, index=False, compression="gzip")
 
-        #s3.upload_file(f'./database_access/data/parquet/{key}.parquet', bucketname, f'{key}.parquet')
+        s3.upload_file(f'./database-access/data/parquet/{key}.parquet', bucketname, f'{key}.parquet')
+        os.remove(f'./database-access/data/parquet/{key}.parquet')
 
-        # try:
-        #     s3.put_object(
-        #         Bucket=bucketname,
-        #         Body=values,
-        #         Key=f"{key}"
-        #     )
-        # except Exception as e:
-            
-        #     sys.exit(f"ERROR: {e}")
-  
+         
        
      
         return True
@@ -213,13 +214,14 @@ def index(dotenv_path_string):
 
     #execute SQL query for finding a list of table names inside RDS and store it inside tables variable
     tables = get_titles(dbcur)
+    
 
     #iterate through the table_names and check for any values which need to updated, storing them in the 'updates' variable
-    updates = check_each_table(tables, dbcur)                 
+    updates = check_each_table(tables, dbcur)  
+    dbcur.close()                
                                   
                  
-    #close connection
-    dbcur.close() 
+    
 
     add_updates(updates)
 
