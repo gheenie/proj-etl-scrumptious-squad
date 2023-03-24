@@ -87,15 +87,15 @@ def make_connection(dotenv_path_string):
         port=port        
         )        
     elif dotenv_path_string.endswith('test'):
-        print('inside test block')
-        print(os.getenv('database'))
-        print(dotenv_path)
-        print(dotenv_path_string)
-        print(os.getcwd())
         conn = pg8000.connect(
             database=os.getenv('database'),
             user=os.getenv('user'),
             password=os.getenv('password')
+        )
+        conn = pg8000.connect(
+            database='test_totesys',
+            user='gk',
+            password='shareshare'
         )
     
     return conn
@@ -225,6 +225,6 @@ def index(dotenv_path_string):
 
 
 
-index('config/.env.development')
+# index('config/.env.development')
 
 
