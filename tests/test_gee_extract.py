@@ -58,14 +58,8 @@ def mock_bucket(premock_s3):
         CreateBucketConfiguration={'LocationConstraint': 'eu-west-2'}
     )
 
-    # with open('requirements.txt', 'rb') as f:
-    #     premock_s3.put_object(
-    #         Body=f, Bucket='nicebucket1679649834',
-    #         Key='requirements.txt'
-    #     )
 
-
-def test_check_table_in_bucket(mock_bucket):
+def test_check_table_in_bucket__0_existing_keys(mock_bucket):
     tables = (
         ['address'],
         ['counterparty'],
@@ -82,6 +76,39 @@ def test_check_table_in_bucket(mock_bucket):
 
     for title in tables:
         assert check_table_in_bucket(title) == False
+
+
+def test_check_table_in_bucket__some_keys_exist(mock_bucket, premock_s3):
+    tables = (
+        ['address'],
+        ['counterparty'],
+        ['currency'],
+        ['department'],
+        ['design'],
+        ['payment_type'],
+        ['payment'],
+        ['purchase_order'],
+        ['sales_order'],
+        ['staff'],
+        ['transaction']
+    )
+    
+    premock_s3.put_object(
+        Body='any text', 
+        Bucket='nicebucket1679649834',
+        Key='design.parquet'
+    )
+    premock_s3.put_object(
+        Body='any text', 
+        Bucket='nicebucket1679649834',
+        Key='sales_order.parquet'
+    )
+
+    for title in tables:
+        if title in [['design'], ['sales_order']]:
+            assert check_table_in_bucket(title) == True
+        else:
+            assert check_table_in_bucket(title) == False
 
 
 @pytest.mark.skip
