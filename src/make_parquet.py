@@ -12,8 +12,7 @@ import sys
 import os
 from dotenv import load_dotenv
 from pathlib import Path
-from set_up.read_buck import (get_parquet, check_table_in_bucket)
-
+from src.set_up.read_buck import (get_parquet, check_table_in_bucket)
 
 
 def pull_secrets():
@@ -44,33 +43,6 @@ def pull_secrets():
         }
         
         return details['user'], details['password'], details['database'], details['host'], details['port'],
-    
-
-def get_titles(dbcur):
-    sql = """SELECT table_name
-    FROM information_schema.tables
-    WHERE table_schema='public'
-    AND table_type= 'BASE TABLE';"""
-    dbcur.execute(sql)
-    return dbcur.fetchall()  
-
-     
-     
-def check_table_exists(title):    
-        if isfile(f"./database_access/data/parquet/{title[0]}.parquet"): 
-            return True
-        else:
-            return False  
-        
-
-def get_table(dbcur, title):
-    sql = f'SELECT * FROM {title[0]}'    
-    dbcur.execute(sql)
-    rows = dbcur.fetchall()     
-    keys = [k[0] for k in dbcur.description]   
-    return rows, keys
-
-
 
 
 def make_connection(dotenv_path_string): 
@@ -100,9 +72,36 @@ def make_connection(dotenv_path_string):
         )
     
     return conn
+    
+
+def get_titles(dbcur):
+    sql = """SELECT table_name
+    FROM information_schema.tables
+    WHERE table_schema='public'
+    AND table_type= 'BASE TABLE';"""
+    dbcur.execute(sql)
+    return dbcur.fetchall()  
 
 
-     
+def check_table_in_bucket(title):    
+        bucketname = 'nicebucket1679649834'  
+        s3 = boto3.client('s3')
+        print(dir(s3))
+        files =s3.list_objects_v2(Bucket=bucketname)
+        print(files)
+        filename = f"{title[0]}.parquet"  
+        filenames= [file['Key'] for file in files['Contents']]
+        
+        return filename in filenames
+
+
+def get_table(dbcur, title):
+    sql = f'SELECT * FROM {title[0]}'    
+    dbcur.execute(sql)
+    rows = dbcur.fetchall()     
+    keys = [k[0] for k in dbcur.description]   
+    return rows, keys
+
 
 def get_most_recent_time(title):
     #function to find most recent update and creation times for table rows to check which values need to be updated
@@ -129,7 +128,6 @@ def get_most_recent_time(title):
         'created_at': last_update,
         'last_updated': last_creation
     }
-
 
 
 def check_each_table(tables, dbcur):
@@ -189,9 +187,6 @@ def push_to_cloud(object):
         s3.upload_file(f'./database-access/data/parquet/{key}.parquet', bucketname, f'{key}.parquet')
         os.remove(f'./database-access/data/parquet/{key}.parquet')
 
-         
-       
-     
         return True
 
 
@@ -220,9 +215,7 @@ def index(dotenv_path_string):
     updates = check_each_table(tables, dbcur)  
     dbcur.close()                
                                   
-                 
-    
-
+            
     add_updates(updates)
 
 
