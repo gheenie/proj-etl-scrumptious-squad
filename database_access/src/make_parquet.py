@@ -10,6 +10,9 @@ import boto3
 import json
 from botocore.exceptions import ClientError
 import psycopg
+import os
+from dotenv import load_dotenv
+from pathlib import Path
 
 
 def pull_secrets():
@@ -69,14 +72,24 @@ def get_table(dbcur, title):
 
 
 
-def make_connection():
-    conn = pg8000.connect(
-    database='totesys',
-    user='project_user_4',
-    password='LC7zJxE3BfvY7p',
-    host='nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com',
-    port=5432        
-    )
+def make_connection(dotenv_path_string):
+    dotenv_path = Path(dotenv_path_string)
+    load_dotenv(dotenv_path=dotenv_path)
+    
+    if dotenv_path_string.endswith('development'):
+        conn = pg8000.connect(
+            database=os.getenv('database'),
+            user=os.getenv('user'),
+            password=os.getenv('password'),
+            host=os.getenv('host'),
+            port=os.getenv('port')        
+        )
+    elif dotenv_path_string.endswith('test'):
+        conn = pg8000.connect(
+            database=os.getenv('database'),
+            user=os.getenv('user'),
+            password=os.getenv('password'),    
+        )
 
     return conn      
 
@@ -161,14 +174,14 @@ def  add_updates(updates):
 
  
 
-def index(): 
+def index(dotenv_path_string): 
 
     #function to connect to AWS RDS, find a list of table names, iterate through them and evaluate whether there any updates to make.
     #if not exit the programme.
     #if so, return a list of all neccessary updates in pandas parquet format
      
      #connect to AWS RDS 
-    conn = make_connection()        
+    conn = make_connection(dotenv_path_string)        
     dbcur = conn.cursor()
     
 
@@ -189,7 +202,7 @@ def index():
 
 
 
-index()
+index('config/.env.development')
 
 
 
