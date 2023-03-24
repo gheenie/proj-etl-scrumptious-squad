@@ -20,6 +20,9 @@ def test_example():
     index('config/.env.test')
     # Read one table into a DataFrame.
     sales_order_table = pd.read_parquet(f'{EXTRACTION_SEED_FOLDER}/{SALES_ORDER_FILE}')
+
+    test_pq = pq.read_table(f'{EXTRACTION_SEED_FOLDER}/{SALES_ORDER_FILE}')
+    print(test_pq)
     
     # Example statements to demonstrate Pandas functions. Refer to NC Notes as well.
     # The first square brackets is similar to a WHERE condition in sql.
