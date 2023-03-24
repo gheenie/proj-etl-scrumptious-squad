@@ -54,7 +54,7 @@ def get_titles(dbcur):
      
      
 def check_table_exists(title):    
-        if isfile(f"./database-access/data/parquet/{title[0]}.parquet"): 
+        if isfile(f"./database_access/data/parquet/{title[0]}.parquet"): 
             return True
         else:
             return False  
@@ -103,7 +103,7 @@ def get_most_recent_time(title):
     creations = []
     
     #read existing values
-    table = pd.read_parquet(f"./database-access/data/parquet/{title[0]}.parquet", engine='pyarrow')
+    table = pd.read_parquet(f"./database_access/data/parquet/{title[0]}.parquet", engine='pyarrow')
 
 
     #compile a sorted list of 'last_updated' values and another sorted list of 'created_at' values existing inside previous readings
@@ -132,11 +132,11 @@ def check_each_table(tables, dbcur):
         else:
             #extract the most recent readings
             most_recent_readings = get_most_recent_time(title)
-
+            
             #extract raw data
             rows, keys = get_table(dbcur, title)
             results = [dict(zip(keys, row)) for row in rows]
-
+            
             #filter data to find readings with a more recent 'creation time' or 'update time' than our most recent readings have             
             new_rows = [row for row in results if row['created_at'] > most_recent_readings['created_at'] or row['last_updated'] > most_recent_readings['last_updated']]                              
             
@@ -159,7 +159,7 @@ def push_to_cloud(object):
         values = object[key] 
   
         #use key for file name, and value as the content for the file       
-        values.to_parquet(f"./database-access/data/parquet/{key}.parquet") 
+        values.to_parquet(f"./database_access/data/parquet/{key}.parquet") 
      
         return True
 
