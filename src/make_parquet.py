@@ -86,11 +86,12 @@ def get_titles(dbcur):
 def check_table_in_bucket(title):    
         bucketname = 'nicebucket1679649834'  
         s3 = boto3.client('s3')
-        print(dir(s3))
-        files =s3.list_objects_v2(Bucket=bucketname)
-        print(files)
+        response = s3.list_objects_v2(Bucket=bucketname)
+
+        if response['KeyCount'] == 0: return False
+
         filename = f"{title[0]}.parquet"  
-        filenames= [file['Key'] for file in files['Contents']]
+        filenames= [file['Key'] for file in response['Contents']]
         
         return filename in filenames
 
