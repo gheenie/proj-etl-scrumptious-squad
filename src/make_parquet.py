@@ -7,11 +7,17 @@ import bisect
 import boto3
 import json
 from botocore.exceptions import ClientError
+from io import BytesIO
+import sys
+import os
+from dotenv import load_dotenv
+from pathlib import Path
+
 
 
 def pull_secrets():
-    #get secret_id for secret
-    secret_name = input('Get: Secret Identifier:')     
+    
+    secret_name = 'source_DB'     
     secrets_manager = boto3.client('secretsmanager')
 
     try:               
@@ -26,13 +32,17 @@ def pull_secrets():
         else:           
             return(f'ERROR : {error_code}')
     else:
+        secrets = json.loads(response['SecretString'])
         
+        details = {
+        'user': secrets['user'][0],
+        'password': secrets['password'][0],
+        'database': secrets['database'][0],
+        'host':secrets['host'][0],
+        'port':secrets['port']
+        }
         
-           
-                 
-
-        #return results
-        return json.loads(response['SecretString'])
+        return details['user'], details['password'], details['database'], details['host'], details['port'],
     
 
 def get_titles(dbcur):
@@ -62,16 +72,28 @@ def get_table(dbcur, title):
 
 
 
-def make_connection():
-    conn = pg8000.connect(
-    database='totesys',
-    user='project_user_4',
-    password='LC7zJxE3BfvY7p',
-    host='nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com',
-    port=5432        
-    )
+def make_connection(dotenv_path_string): 
+    dotenv_path = Path(dotenv_path_string)
 
-    return conn      
+    load_dotenv(dotenv_path=dotenv_path)
+
+    if dotenv_path_string.endswith('development'):
+        user, password, database, host, port = pull_secrets()  
+        conn = pg8000.connect(
+        database=database,
+        user=user,
+        password=password,
+        host=host,
+        port=port        
+        )        
+    elif dotenv_path_string.endswith('test'):
+        conn = pg8000.connect(
+            database=os.getenv('database'),
+            user=os.getenv('user'),
+            password=os.getenv('password')
+        )
+    
+    return conn
 
      
      
@@ -84,7 +106,6 @@ def get_most_recent_time(title):
     
     #read existing values
     table = pd.read_parquet(f"./database-access/data/parquet/{title[0]}.parquet", engine='pyarrow')   
-
 
     #compile a sorted list of 'last_updated' values and another sorted list of 'created_at' values existing inside previous readings
     for date in set(table['last_updated']):bisect.insort(updates, date)
@@ -138,9 +159,32 @@ def push_to_cloud(object):
         #seperate key and value from object              
         key = [key for key in object.keys()][0]
         values = object[key] 
-  
+
         #use key for file name, and value as the content for the file       
         values.to_parquet(f"./database-access/data/parquet/{key}.parquet") 
+
+        print(key)
+
+        # s3 = boto3.client('s3')
+        # response = s3.list_buckets()
+        # bucketname = [bucket['Name'] for bucket in response['Buckets']][0]   
+
+        # out_buffer = BytesIO()
+        # values.to_parquet(out_buffer, index=False, compression="gzip")
+
+        #s3.upload_file(f'./database-access/data/parquet/{key}.parquet', bucketname, f'{key}.parquet')
+
+        # try:
+        #     s3.put_object(
+        #         Bucket=bucketname,
+        #         Body=values,
+        #         Key=f"{key}"
+        #     )
+        # except Exception as e:
+            
+        #     sys.exit(f"ERROR: {e}")
+  
+       
      
         return True
 
@@ -149,27 +193,21 @@ def  add_updates(updates):
     #iterate through the list of dicts that need to be updated     
     for object in updates:                 
          push_to_cloud(object)
-
  
 
 
- 
-
-def index(): 
+def index(dotenv_path_string): 
 
     #function to connect to AWS RDS, find a list of table names, iterate through them and evaluate whether there any updates to make.
     #if not exit the programme.
-    #if so, return a list of all neccessary updates in pandas parquet format
+    #if so, return a list of all neccessary updates in pandas parquet format  
      
      #connect to AWS RDS 
-    conn = make_connection()        
-    dbcur = conn.cursor()
-    
+    conn = make_connection(dotenv_path_string)        
+    dbcur = conn.cursor()    
 
     #execute SQL query for finding a list of table names inside RDS and store it inside tables variable
     tables = get_titles(dbcur)
-  
-
 
     #iterate through the table_names and check for any values which need to updated, storing them in the 'updates' variable
     updates = check_each_table(tables, dbcur)                 
@@ -177,14 +215,11 @@ def index():
                  
     #close connection
     dbcur.close() 
-    return 1 
 
     add_updates(updates)
 
 
 
-index()
-
-
+index('config/.env.development')
 
 
