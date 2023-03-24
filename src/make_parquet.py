@@ -56,7 +56,7 @@ def get_titles(dbcur):
      
      
 def check_table_exists(title):    
-        if isfile(f"./database-access/data/parquet/{title[0]}.parquet"): 
+        if isfile(f"./database_access/data/parquet/{title[0]}.parquet"): 
             return True
         else:
             return False  
@@ -87,6 +87,11 @@ def make_connection(dotenv_path_string):
         port=port        
         )        
     elif dotenv_path_string.endswith('test'):
+        print('inside test block')
+        print(os.getenv('database'))
+        print(dotenv_path)
+        print(dotenv_path_string)
+        print(os.getcwd())
         conn = pg8000.connect(
             database=os.getenv('database'),
             user=os.getenv('user'),
@@ -105,7 +110,7 @@ def get_most_recent_time(title):
     creations = []
     
     #read existing values
-    table = pd.read_parquet(f"./database-access/data/parquet/{title[0]}.parquet", engine='pyarrow')   
+    table = pd.read_parquet(f"./database_access/data/parquet/{title[0]}.parquet", engine='pyarrow')   
 
     #compile a sorted list of 'last_updated' values and another sorted list of 'created_at' values existing inside previous readings
     for date in set(table['last_updated']):bisect.insort(updates, date)
@@ -161,7 +166,7 @@ def push_to_cloud(object):
         values = object[key] 
 
         #use key for file name, and value as the content for the file       
-        values.to_parquet(f"./database-access/data/parquet/{key}.parquet") 
+        values.to_parquet(f"./database_access/data/parquet/{key}.parquet") 
 
         print(key)
 
@@ -172,7 +177,7 @@ def push_to_cloud(object):
         # out_buffer = BytesIO()
         # values.to_parquet(out_buffer, index=False, compression="gzip")
 
-        #s3.upload_file(f'./database-access/data/parquet/{key}.parquet', bucketname, f'{key}.parquet')
+        #s3.upload_file(f'./database_access/data/parquet/{key}.parquet', bucketname, f'{key}.parquet')
 
         # try:
         #     s3.put_object(
