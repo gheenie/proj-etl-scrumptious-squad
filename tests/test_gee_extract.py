@@ -34,5 +34,5 @@ def test_example():
     
     # This is a fake test to show that the assert works cause actual testing is currently failing.
     assert address_table.loc[address_table.sales_order_id == 1416][['staff_id']].values[0] == 3
-    # This is the actual test.
+    # This is the actual test. The fail message is because there isn't a row with sales_order_id == 5.
     assert address_table.loc[address_table.sales_order_id == 5][['staff_id']].values[0] == 2
