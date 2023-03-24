@@ -1,9 +1,6 @@
 """
 To form your assertion statements, you need to refer to the
 seeded data in extraction-test-db/setup-test-db.txt
-
-Possible improvements: perform the Pandas functions with
-pyarrow instead to make use of Parquet's full capabilities.
 """
 
 
