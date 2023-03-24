@@ -202,7 +202,7 @@ def index(dotenv_path_string):
 
 
 
-index('config/.env.development')
+# index('config/.env.development')
 
 
 
