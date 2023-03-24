@@ -4,15 +4,45 @@ seeded data in extraction-test-db/setup-test-db.txt
 """
 
 
-from src.make_parquet import (make_connection, get_titles, check_table_in_bucket, index)
+from src.make_parquet import (pull_secrets, make_connection, get_titles, check_table_in_bucket, index)
+from src.set_up.make_secrets import (entry)
 import pandas as pd
 import pytest
 import os
-from moto import mock_s3
+from moto import (mock_secretsmanager, mock_s3)
 import boto3
 
 
-def test_make_connection_and_get_titles_returns_correct_table_names():
+@pytest.fixture(scope='function')
+def aws_credentials():
+    """Mocked AWS Credentials for moto."""
+
+    os.environ['AWS_ACCESS_KEY_ID'] = 'test'
+    os.environ['AWS_SECRET_ACCESS_KEY'] = 'test'
+    os.environ['AWS_SECURITY_TOKEN'] = 'test'
+    os.environ['AWS_SESSION_TOKEN'] = 'test'
+    os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
+
+
+@pytest.fixture(scope='function')
+def premock_secretsmanager(aws_credentials):
+    with mock_secretsmanager():
+        # yield boto3.client('secretsmanager', region_name='us-east-1')
+        yield 'unused string, this is just to prevent mock from closing'
+
+
+def test_pull_secrets_returns_correct_secrets(premock_secretsmanager):
+    entry()
+    user, password, database, host, port = pull_secrets()
+
+    assert user == 'project_user_4'
+    assert password == 'LC7zJxE3BfvY7p'
+    assert database == 'totesys'
+    assert host == 'nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com'
+    assert port == 5432
+
+
+def test_make_connection_and_get_titles_returns_correct_table_names__test_env():
     conn = make_connection('config/.env.test')        
     dbcur = conn.cursor()
     tables = get_titles(dbcur)
@@ -32,17 +62,6 @@ def test_make_connection_and_get_titles_returns_correct_table_names():
     )
 
     assert tables == expected
-
-
-@pytest.fixture(scope='function')
-def aws_credentials():
-    """Mocked AWS Credentials for moto."""
-
-    os.environ['AWS_ACCESS_KEY_ID'] = 'test'
-    os.environ['AWS_SECRET_ACCESS_KEY'] = 'test'
-    os.environ['AWS_SECURITY_TOKEN'] = 'test'
-    os.environ['AWS_SESSION_TOKEN'] = 'test'
-    os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
 
 
 @pytest.fixture(scope='function')
