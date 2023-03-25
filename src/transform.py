@@ -1,5 +1,17 @@
 import pandas as pd
-#  eventually this will need to be changed to read the parquet files from the aws s3 bucket
+
+# Check if we are using secret manager, if so we need to retrive the secret key
+
+# We need a function that will read the files from the "ingested data" s3 bucket
+
+# We need a function to check_data_files
+# check the data is in the right format (readable parquet file) 
+#       if corrupted or in wrong format dont execute 
+
+# Not sure if the two functions mentioned above are combined in one?
+
+
+#  This currently reads the csv files and puts the outcome in a Dataframe. Eventually this will need to be changed to read the parquet files from the aws s3 bucket
 df_address = pd.read_csv('./database_access/data/csv/address.csv')
 df_counterparty = pd.read_csv('./database_access/data/csv/counterparty.csv')
 df_currency = pd.read_csv('./database_access/data/csv/currency.csv')
@@ -34,3 +46,16 @@ def create_facts_sales_order_table():
 
     return sales_order_table
 
+
+# facts_sales_order_table = create_facts_sales_order_table()
+
+
+
+# The following function will convert the dataframes to a parquet file
+
+# def write_to_parquet(data_frame, path):
+#     data_frame.to_parquet(path)
+
+
+
+# We need a function that will put the files into the "processed data" s3 bucket
