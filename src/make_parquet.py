@@ -195,19 +195,18 @@ def push_to_cloud(object):
         values = object[key] 
 
         #use key for file name, and value as the content for the file       
-        values.to_parquet(f'./database-access/data/parquet/{key}.parquet') 
+        values.to_parquet(f'./database_access/data/parquet/{key}.parquet') 
 
         print(key)
 
         s3 = boto3.client('s3')
-        response = s3.list_buckets()
         bucketname = 'nicebucket1679673428'  
 
         out_buffer = BytesIO()
-        values.to_parquet(out_buffer, index=False, compression="gzip")
+        # values.to_parquet(out_buffer, index=False, compression="gzip")
 
-        s3.upload_file(f'./database-access/data/parquet/{key}.parquet', bucketname, f'{key}.parquet')
-        os.remove(f'./database-access/data/parquet/{key}.parquet')        
+        s3.upload_file(f'./database_access/data/parquet/{key}.parquet', bucketname, f'{key}.parquet')
+        os.remove(f'./database_access/data/parquet/{key}.parquet')        
        
      
         return True

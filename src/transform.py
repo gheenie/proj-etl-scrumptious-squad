@@ -1,11 +1,25 @@
 import pandas as pd
 import numpy as np
+import boto3
+from io import BytesIO
 
 # Check if we are using secret manager, if so we need to retrive the secret key
 
-
 # We need a function that will read the files from the "ingested data" s3 bucket
 
+def get_parquet(title):
+    bucketname = 'nicebucket1679673428'  
+    s3 = boto3.client('s3')
+    files =s3.list_objects_v2(Bucket=bucketname)
+    filename = f"{title}.parquet"      
+    if filename in [file['Key'] for file in files['Contents']]:       
+        print(filename)    
+        buffer = BytesIO()
+        client = boto3.resource('s3')
+        object=client.Object(bucketname, filename)
+        object.download_fileobj(buffer)
+        df = pd.read_parquet(buffer)
+        return df
 
 
 # We need a function to check_data_files
@@ -16,17 +30,17 @@ import numpy as np
 
 
 #  This currently reads the csv files and puts the outcome in a Dataframe. Eventually this will need to be changed to read the parquet files from the aws s3 bucket
-df_address = pd.read_csv('./database_access/data/csv/address.csv')
-df_counterparty = pd.read_csv('./database_access/data/csv/counterparty.csv')
-df_currency = pd.read_csv('./database_access/data/csv/currency.csv')
-df_department = pd.read_csv('./database_access/data/csv/department.csv')
-df_design = pd.read_csv('./database_access/data/csv/design.csv')
-df_payment_type = pd.read_csv('./database_access/data/csv/payment_type.csv')
-df_payment = pd.read_csv('./database_access/data/csv/payment.csv')
-df_purchase_order = pd.read_csv('./database_access/data/csv/purchase_order.csv')
-df_sales_order = pd.read_csv('./database_access/data/csv/sales_order.csv')
-df_staff = pd.read_csv('./database_access/data/csv/staff.csv')
-df_transaction = pd.read_csv('./database_access/data/csv/transaction.csv')
+df_address = get_parquet('address')
+df_counterparty = get_parquet('counterparty')
+df_currency = get_parquet('currency')
+df_department = get_parquet('department')
+df_design = get_parquet('design')
+df_payment_type = get_parquet('payment_type')
+df_payment = get_parquet('payment')
+df_purchase_order = get_parquet('purchase_order')
+df_sales_order = get_parquet('sales_order')
+df_staff = get_parquet('staff')
+df_transaction = get_parquet('transaction')
 
 
 def create_dim_date(start_date, end_date):
@@ -124,14 +138,45 @@ def create_facts_sales_order_table():
     return sales_order_table
 
 
-# facts_sales_order_table = create_facts_sales_order_table()
-
-
-# The following function will convert the dataframes to a parquet file
-
-# def write_to_parquet(data_frame, path):
-#     data_frame.to_parquet(path)
-
+dim_date = {'dim_date': create_dim_date('2022-01-01', '2050-01-01')}
+dim_location = {'dim_location' : create_dim_design()}
+dim_design = {'dim_design' : create_dim_design()}
+dim_currency = {'dim_currency' : create_dim_currency()}
+dim_counterparty = {'dim_counterparty' : create_dim_counterparty()}
+dim_staff = {'dim_staff' : create_dim_staff()}
+facts_sales_order = {'facts_sales_order' : create_facts_sales_order_table()}
 
 
 # We need a function that will put the files into the "processed data" s3 bucket
+
+def push_to_cloud(object): 
+        #seperate key and value from object              
+        key = [key for key in object.keys()][0]
+        values = object[key] 
+
+        #use key for file name, and value as the content for the file       
+        values.to_parquet(f'./database_access/data/parquet/{key}.parquet') 
+
+        print(key)
+
+        s3 = boto3.client('s3')
+        bucketname = 'nicebucket1679673428'  
+
+        out_buffer = BytesIO()
+        values.to_parquet(out_buffer, index=False, compression="gzip")
+
+        s3.upload_file(f'./database_access/data/parquet/{key}.parquet', bucketname, f'{key}.parquet')
+        os.remove(f'./database_access/data/parquet/{key}.parquet')        
+       
+     
+        return True
+
+
+push_to_cloud(dim_date)
+push_to_cloud(dim_location)
+push_to_cloud(dim_design)
+push_to_cloud(dim_currency)
+push_to_cloud(dim_counterparty)
+push_to_cloud(dim_staff)
+push_to_cloud(facts_sales_order)
+
