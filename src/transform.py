@@ -4,16 +4,29 @@ import boto3
 from io import BytesIO
 import os
 
+
+def get_bucket_name(bucket_prefix):
+    s3 = boto3.client('s3')
+    response = s3.list_buckets()
+
+    for bucket in response['Buckets']:
+        if bucket['Name'].startswith(bucket_prefix):
+            return bucket['Name']
+
+
 # Check if we are using secret manager, if so we need to retrive the secret key
 
 # We need a function that will read the files from the "ingested data" s3 bucket
 
 def get_parquet(title):
-    bucketname = 'nicebucket1679929570'  
+    bucketname = get_bucket_name('scrumptious-squad-pr-data-')
     s3 = boto3.client('s3')
-    files =s3.list_objects_v2(Bucket=bucketname)
-    filename = f"{title}.parquet"      
-    if filename in [file['Key'] for file in files['Contents']]:       
+    response =s3.list_objects_v2(Bucket=bucketname)
+    filename = f"{title}.parquet"   
+
+    if response['KeyCount'] == 0: return False
+
+    if filename in [file['Key'] for file in response['Contents']]:       
         print(filename)    
         buffer = BytesIO()
         client = boto3.resource('s3')
@@ -140,7 +153,7 @@ def create_facts_sales_order_table():
 
 
 dim_date = {'dim_date': create_dim_date('2022-01-01', '2050-01-01')}
-dim_location = {'dim_location' : create_dim_design()}
+dim_location = {'dim_location' : create_dim_location()}
 dim_design = {'dim_design' : create_dim_design()}
 dim_currency = {'dim_currency' : create_dim_currency()}
 dim_counterparty = {'dim_counterparty' : create_dim_counterparty()}
@@ -161,7 +174,7 @@ def push_to_cloud(object):
         print(key)
 
         s3 = boto3.client('s3')
-        bucketname = 'nicebucket1679929906'  
+        get_bucket_name('scrumptious-squad-pr-data-')
 
         out_buffer = BytesIO()
         values.to_parquet(out_buffer, index=False, compression="gzip")

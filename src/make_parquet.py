@@ -85,8 +85,17 @@ def get_table(dbcur, title):
     return rows, keys
 
 
+def get_bucket_name(bucket_prefix):
+    s3 = boto3.client('s3')
+    response = s3.list_buckets()
+
+    for bucket in response['Buckets']:
+        if bucket['Name'].startswith(bucket_prefix):
+            return bucket['Name']
+
+
 def check_table_in_bucket(title):    
-        bucketname = 'nicebucket1679929570'  
+        bucketname = get_bucket_name('scrumptious-squad-in-data-')
         s3 = boto3.client('s3')
         response = s3.list_objects_v2(Bucket=bucketname)
 
@@ -99,11 +108,14 @@ def check_table_in_bucket(title):
 
 
 def get_parquet(title):
-    bucketname = 'nicebucket1679929570'  
+    bucketname = get_bucket_name('scrumptious-squad-in-data-')
     s3 = boto3.client('s3')
-    files =s3.list_objects_v2(Bucket=bucketname)
+    response =s3.list_objects_v2(Bucket=bucketname)
     filename = f"{title}.parquet"      
-    if filename in [file['Key'] for file in files['Contents']]:       
+
+    if response['KeyCount'] == 0: return False
+
+    if filename in [file['Key'] for file in response['Contents']]:       
         print(filename)    
         buffer = BytesIO()
         client = boto3.resource('s3')
@@ -189,7 +201,7 @@ def push_to_cloud(object):
         print(key)
 
         s3 = boto3.client('s3')
-        bucketname = 'nicebucket1679929570'  
+        bucketname = get_bucket_name('scrumptious-squad-in-data-')
 
         out_buffer = BytesIO()
         # values.to_parquet(out_buffer, index=False, compression="gzip")
