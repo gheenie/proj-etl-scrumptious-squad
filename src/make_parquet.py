@@ -15,7 +15,7 @@ from pathlib import Path
 
 
 def get_parquet(title):
-    bucketname = 'nicebucket1679673428'  
+    bucketname = 'nicebucket1679929570'  
     s3 = boto3.client('s3')
     files =s3.list_objects_v2(Bucket=bucketname)
     filename = f"{title}.parquet"      
@@ -30,7 +30,7 @@ def get_parquet(title):
 
 
 def check_table_in_bucket(title):    
-        bucketname = 'nicebucket1679673428'  
+        bucketname = 'nicebucket1679929570'  
         s3 = boto3.client('s3')
         files =s3.list_objects_v2(Bucket=bucketname)       
         filename = f"{title[0]}.parquet" 
@@ -200,7 +200,7 @@ def push_to_cloud(object):
         print(key)
 
         s3 = boto3.client('s3')
-        bucketname = 'nicebucket1679673428'  
+        bucketname = 'nicebucket1679929570'  
 
         out_buffer = BytesIO()
         # values.to_parquet(out_buffer, index=False, compression="gzip")

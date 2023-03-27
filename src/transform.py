@@ -2,13 +2,14 @@ import pandas as pd
 import numpy as np
 import boto3
 from io import BytesIO
+import os
 
 # Check if we are using secret manager, if so we need to retrive the secret key
 
 # We need a function that will read the files from the "ingested data" s3 bucket
 
 def get_parquet(title):
-    bucketname = 'nicebucket1679673428'  
+    bucketname = 'nicebucket1679929570'  
     s3 = boto3.client('s3')
     files =s3.list_objects_v2(Bucket=bucketname)
     filename = f"{title}.parquet"      
@@ -160,7 +161,7 @@ def push_to_cloud(object):
         print(key)
 
         s3 = boto3.client('s3')
-        bucketname = 'nicebucket1679673428'  
+        bucketname = 'nicebucket1679929906'  
 
         out_buffer = BytesIO()
         values.to_parquet(out_buffer, index=False, compression="gzip")
