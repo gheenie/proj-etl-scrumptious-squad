@@ -12,7 +12,32 @@ import sys
 import os
 from dotenv import load_dotenv
 from pathlib import Path
-from set_up.read_buck import (get_parquet, check_table_in_bucket)
+
+
+def get_parquet(title):
+    bucketname = 'nicebucket1679673428'  
+    s3 = boto3.client('s3')
+    files =s3.list_objects_v2(Bucket=bucketname)
+    filename = f"{title}.parquet"      
+    if filename in [file['Key'] for file in files['Contents']]:       
+        print(filename)    
+        buffer = BytesIO()
+        client = boto3.resource('s3')
+        object=client.Object(bucketname, filename)
+        object.download_fileobj(buffer)
+        df = pd.read_parquet(buffer)
+        return df
+
+
+def check_table_in_bucket(title):    
+        bucketname = 'nicebucket1679673428'  
+        s3 = boto3.client('s3')
+        files =s3.list_objects_v2(Bucket=bucketname)       
+        filename = f"{title[0]}.parquet" 
+        if not files.get('Contents'): return False
+        filenames= [file['Key'] for file in files['Contents']]
+        
+        return filename in filenames
 
 
 
@@ -176,15 +201,13 @@ def push_to_cloud(object):
 
         s3 = boto3.client('s3')
         response = s3.list_buckets()
-        bucketname = 'nicebucket1679649834'  
+        bucketname = 'nicebucket1679673428'  
 
         out_buffer = BytesIO()
         values.to_parquet(out_buffer, index=False, compression="gzip")
 
         s3.upload_file(f'./database-access/data/parquet/{key}.parquet', bucketname, f'{key}.parquet')
-        os.remove(f'./database-access/data/parquet/{key}.parquet')
-
-         
+        os.remove(f'./database-access/data/parquet/{key}.parquet')        
        
      
         return True

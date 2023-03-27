@@ -11,6 +11,7 @@ def create_secret(secret, secret_identifier):
             SecretString=json.dumps(secret)
         )
         #if secret is created send success message
+        print('done')
         return "Success"
     except secrets_manager.exceptions.ResourceExistsException:
         #if name is taken return message
@@ -49,6 +50,8 @@ def entry():
     secret, secret_id = get_inputs()    
 
     return create_secret(secret, secret_id)  
+
+print(entry())
 
 
 
