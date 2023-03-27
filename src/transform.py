@@ -3,7 +3,10 @@ import numpy as np
 
 # Check if we are using secret manager, if so we need to retrive the secret key
 
+
 # We need a function that will read the files from the "ingested data" s3 bucket
+
+
 
 # We need a function to check_data_files
 # check the data is in the right format (readable parquet file) 
