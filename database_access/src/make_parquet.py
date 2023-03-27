@@ -10,6 +10,9 @@ import boto3
 import json
 from botocore.exceptions import ClientError
 import psycopg
+import os
+from dotenv import load_dotenv
+from pathlib import Path
 
 
 def pull_secrets():
@@ -51,7 +54,7 @@ def get_titles(dbcur):
      
      
 def check_table_exists(title):    
-        if isfile(f"./database-access/data/parquet/{title[0]}.parquet"): 
+        if isfile(f"./database_access/data/parquet/{title[0]}.parquet"): 
             return True
         else:
             return False  
@@ -69,14 +72,24 @@ def get_table(dbcur, title):
 
 
 
-def make_connection():
-    conn = pg8000.connect(
-    database='totesys',
-    user='project_user_4',
-    password='LC7zJxE3BfvY7p',
-    host='nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com',
-    port=5432        
-    )
+def make_connection(dotenv_path_string):
+    dotenv_path = Path(dotenv_path_string)
+    load_dotenv(dotenv_path=dotenv_path)
+    
+    if dotenv_path_string.endswith('development'):
+        conn = pg8000.connect(
+            database=os.getenv('database'),
+            user=os.getenv('user'),
+            password=os.getenv('password'),
+            host=os.getenv('host'),
+            port=os.getenv('port')        
+        )
+    elif dotenv_path_string.endswith('test'):
+        conn = pg8000.connect(
+            database=os.getenv('database'),
+            user=os.getenv('user'),
+            password=os.getenv('password'),    
+        )
 
     return conn      
 
@@ -90,7 +103,7 @@ def get_most_recent_time(title):
     creations = []
     
     #read existing values
-    table = pd.read_parquet(f"./database-access/data/parquet/{title[0]}.parquet", engine='pyarrow')
+    table = pd.read_parquet(f"./database_access/data/parquet/{title[0]}.parquet", engine='pyarrow')
 
 
     #compile a sorted list of 'last_updated' values and another sorted list of 'created_at' values existing inside previous readings
@@ -119,11 +132,11 @@ def check_each_table(tables, dbcur):
         else:
             #extract the most recent readings
             most_recent_readings = get_most_recent_time(title)
-
+            
             #extract raw data
             rows, keys = get_table(dbcur, title)
             results = [dict(zip(keys, row)) for row in rows]
-
+            
             #filter data to find readings with a more recent 'creation time' or 'update time' than our most recent readings have             
             new_rows = [row for row in results if row['created_at'] > most_recent_readings['created_at'] or row['last_updated'] > most_recent_readings['last_updated']]                              
             
@@ -146,7 +159,7 @@ def push_to_cloud(object):
         values = object[key] 
   
         #use key for file name, and value as the content for the file       
-        values.to_parquet(f"./database-access/data/parquet/{key}.parquet") 
+        values.to_parquet(f"./database_access/data/parquet/{key}.parquet") 
      
         return True
 
@@ -161,14 +174,14 @@ def  add_updates(updates):
 
  
 
-def index(): 
+def index(dotenv_path_string): 
 
     #function to connect to AWS RDS, find a list of table names, iterate through them and evaluate whether there any updates to make.
     #if not exit the programme.
     #if so, return a list of all neccessary updates in pandas parquet format
      
      #connect to AWS RDS 
-    conn = make_connection()        
+    conn = make_connection(dotenv_path_string)        
     dbcur = conn.cursor()
     
 
@@ -189,7 +202,7 @@ def index():
 
 
 
-index()
+# index('config/.env.development')
 
 
 

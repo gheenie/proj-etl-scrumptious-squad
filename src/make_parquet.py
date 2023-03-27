@@ -14,33 +14,6 @@ from dotenv import load_dotenv
 from pathlib import Path
 
 
-def get_parquet(title):
-    bucketname = 'nicebucket1679929570'  
-    s3 = boto3.client('s3')
-    files =s3.list_objects_v2(Bucket=bucketname)
-    filename = f"{title}.parquet"      
-    if filename in [file['Key'] for file in files['Contents']]:       
-        print(filename)    
-        buffer = BytesIO()
-        client = boto3.resource('s3')
-        object=client.Object(bucketname, filename)
-        object.download_fileobj(buffer)
-        df = pd.read_parquet(buffer)
-        return df
-
-
-def check_table_in_bucket(title):    
-        bucketname = 'nicebucket1679929570'  
-        s3 = boto3.client('s3')
-        files =s3.list_objects_v2(Bucket=bucketname)       
-        filename = f"{title[0]}.parquet" 
-        if not files.get('Contents'): return False
-        filenames= [file['Key'] for file in files['Contents']]
-        
-        return filename in filenames
-
-
-
 def pull_secrets():
     
     secret_name = 'source_DB'     
@@ -69,33 +42,6 @@ def pull_secrets():
         }
         
         return details['user'], details['password'], details['database'], details['host'], details['port'],
-    
-
-def get_titles(dbcur):
-    sql = """SELECT table_name
-    FROM information_schema.tables
-    WHERE table_schema='public'
-    AND table_type= 'BASE TABLE';"""
-    dbcur.execute(sql)
-    return dbcur.fetchall()  
-
-     
-     
-def check_table_exists(title):    
-        if isfile(f"./database-access/data/parquet/{title[0]}.parquet"): 
-            return True
-        else:
-            return False  
-        
-
-def get_table(dbcur, title):
-    sql = f'SELECT * FROM {title[0]}'    
-    dbcur.execute(sql)
-    rows = dbcur.fetchall()     
-    keys = [k[0] for k in dbcur.description]   
-    return rows, keys
-
-
 
 
 def make_connection(dotenv_path_string): 
@@ -118,11 +64,59 @@ def make_connection(dotenv_path_string):
             user=os.getenv('user'),
             password=os.getenv('password')
         )
+        conn = pg8000.connect(
+            database='test_totesys',
+            user='gk',
+            password='shareshare'
+        )
     
     return conn
+    
+
+def get_titles(dbcur):
+    sql = """SELECT table_name
+    FROM information_schema.tables
+    WHERE table_schema='public'
+    AND table_type= 'BASE TABLE';"""
+    dbcur.execute(sql)
+    return dbcur.fetchall()  
 
 
-     
+def get_table(dbcur, title):
+    sql = f'SELECT * FROM {title[0]}'    
+    dbcur.execute(sql)
+    rows = dbcur.fetchall()     
+    keys = [k[0] for k in dbcur.description]   
+    return rows, keys
+
+
+def check_table_in_bucket(title):    
+        bucketname = 'nicebucket1679929570'  
+        s3 = boto3.client('s3')
+        response = s3.list_objects_v2(Bucket=bucketname)
+
+        if response['KeyCount'] == 0: return False
+
+        filename = f"{title[0]}.parquet"  
+        filenames= [file['Key'] for file in response['Contents']]
+        
+        return filename in filenames
+
+
+def get_parquet(title):
+    bucketname = 'nicebucket1679929570'  
+    s3 = boto3.client('s3')
+    files =s3.list_objects_v2(Bucket=bucketname)
+    filename = f"{title}.parquet"      
+    if filename in [file['Key'] for file in files['Contents']]:       
+        print(filename)    
+        buffer = BytesIO()
+        client = boto3.resource('s3')
+        object=client.Object(bucketname, filename)
+        object.download_fileobj(buffer)
+        df = pd.read_parquet(buffer)
+        return df
+
 
 def get_most_recent_time(title):
     #function to find most recent update and creation times for table rows to check which values need to be updated
@@ -151,21 +145,21 @@ def get_most_recent_time(title):
     }
 
 
-
-def check_each_table(tables, dbcur):
+def check_each_table(tables, dbcur):     
     to_be_added= []
-    for title in tables:
+
+    for title in tables:                      
+        rows, keys = get_table(dbcur, title)
+        
         #if there are no existing parquet files storing our data, create them
         if not check_table_in_bucket(title): 
-            print(title, "to be added")                                     
-            rows, keys = get_table(dbcur, title)
+            print(title, "to be added")          
             to_be_added.append({title[0]: pd.DataFrame(rows, columns=keys)})
         else:
             #extract the most recent readings
             most_recent_readings = get_most_recent_time(title)
 
             #extract raw data
-            rows, keys = get_table(dbcur, title)
             results = [dict(zip(keys, row)) for row in rows]
 
             #filter data to find readings with a more recent 'creation time' or 'update time' than our most recent readings have             
@@ -237,13 +231,11 @@ def index(dotenv_path_string):
     updates = check_each_table(tables, dbcur)  
     dbcur.close()                
                                   
-                 
-    
-
+            
     add_updates(updates)
 
 
 
-index('config/.env.development')
+# index('config/.env.development')
 
 
