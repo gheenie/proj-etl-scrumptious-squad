@@ -4,7 +4,7 @@ seeded data in extraction-test-db/setup-test-db.txt
 """
 
 
-from src.make_parquet import (pull_secrets, make_connection, get_titles, check_table_in_bucket, index)
+from src.make_parquet import (pull_secrets, make_connection, get_titles, get_table, check_table_in_bucket, index)
 from src.set_up.make_secrets import (entry)
 import pandas as pd
 import pytest
@@ -62,6 +62,28 @@ def test_make_connection_and_get_titles_returns_correct_table_names__test_env():
     )
 
     assert tables == expected
+
+
+def test_get_table_returns_test_db_seeded_data():
+    conn = make_connection('config/.env.test')        
+    dbcur = conn.cursor()
+    tables = (
+        ['address'],
+        ['counterparty'],
+        ['currency'],
+        ['department'],
+        ['design'],
+        ['payment_type'],
+        ['payment'],
+        ['purchase_order'],
+        ['sales_order'],
+        ['staff'],
+        ['transaction']
+    )
+
+    for title in tables:
+        rows, keys = get_table(dbcur, title)
+        print(rows)
 
 
 @pytest.fixture(scope='function')
