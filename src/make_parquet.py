@@ -64,11 +64,6 @@ def make_connection(dotenv_path_string):
             user=os.getenv('user'),
             password=os.getenv('password')
         )
-        conn = pg8000.connect(
-            database='test_totesys',
-            user='gk',
-            password='shareshare'
-        )
     
     return conn
     
