@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 
 # Check if we are using secret manager, if so we need to retrive the secret key
 
@@ -24,15 +25,89 @@ df_sales_order = pd.read_csv('./database_access/data/csv/sales_order.csv')
 df_staff = pd.read_csv('./database_access/data/csv/staff.csv')
 df_transaction = pd.read_csv('./database_access/data/csv/transaction.csv')
 
-def create_facts_sales_order_table():
+
+def create_dim_date(start_date, end_date):
+    #using pandas date_range method
+    date_range = pd.date_range(start=start_date, end=end_date, freq='D')
+    dim_date = pd.DataFrame(date_range, columns=['date_id'])
+    dim_date['year'] = dim_date['date_id'].dt.year
+    dim_date['month'] = dim_date['date_id'].dt.month
+    dim_date['day'] = dim_date['date_id'].dt.day
+    dim_date['day_of_week'] = dim_date['date_id'].dt.isocalendar().day
+    dim_date['day_name'] = dim_date['date_id'].dt.day_name()
+    dim_date['month_name'] = dim_date['date_id'].dt.strftime('%B')
+    dim_date['quarter'] = dim_date['date_id'].dt.quarter
     
+    return dim_date
+
+def create_dim_location():
+    dim_location = pd.DataFrame() 
+    dim_location['location_id'] = df_address['address_id']
+    dim_location['address_line_1'] = df_address['address_line_1']
+    dim_location['address_line_2'] = df_address['address_line_2']
+    dim_location['district'] = df_address['district']
+    dim_location['city'] = df_address['city']
+    dim_location['postal_code'] = df_address['postal_code']
+    dim_location['country'] = df_address['country']
+    dim_location['phone'] = df_address['phone']
+
+    return dim_location
+
+def create_dim_design():
+    dim_design = pd.DataFrame() 
+    dim_design['design_id'] = df_design['design_id']
+    dim_design['design_name'] = df_design['design_name']
+    dim_design['file_location'] = df_design['file_location']
+    dim_design['file_name'] = df_design['file_name']
+
+    return dim_design
+
+def create_dim_currency():
+    dim_currency = pd.DataFrame()
+    dim_currency['currency_id'] = df_currency['currency_id']
+    dim_currency['currency_code'] = df_currency['currency_code']
+    conditions = [(dim_currency['currency_code'] == 'GBP'), dim_currency['currency_code'] == 'USD', dim_currency['currency_code'] == 'EUR']
+    values = ['British Pound Sterling', 'United States Dollar', 'Euro']
+    dim_currency['currency_name'] = np.select(conditions, values)
+    
+    return dim_currency
+    
+def create_dim_counterparty():
+    dim_counterparty = pd.DataFrame()
+    df_add = pd.merge(df_address,df_counterparty, left_on='address_id', right_on='legal_address_id')
+    dim_counterparty['counterparty_id'] = df_counterparty['counterparty_id']
+    dim_counterparty['counterparty_legal_name'] = df_counterparty['counterparty_legal_name']
+    dim_counterparty['counterparty_legal_address_line_1'] = df_add['address_line_1']
+    dim_counterparty['counterparty_legal_address_line2'] = df_add['address_line_2']
+    dim_counterparty['counterparty_legal_district'] = df_add['district']
+    dim_counterparty['counterparty_legal_city'] = df_add['city']
+    dim_counterparty['counterparty_legal_postal_code'] = df_add['postal_code']
+    dim_counterparty['counterparty_legal_country'] = df_add['country']
+    dim_counterparty['counterparty_legal_phone_number'] = df_add['phone']
+    
+    return dim_counterparty
+
+
+def create_dim_staff():
+    dim_staff = pd.DataFrame()
+    df_stf_dep = pd.merge(df_staff,df_department, on='department_id')
+    dim_staff['staff_id'] = df_stf_dep['staff_id']
+    dim_staff['first_name'] = df_stf_dep['first_name']
+    dim_staff['last_name'] = df_stf_dep['last_name']
+    dim_staff['department_name'] = df_stf_dep['department_name']
+    dim_staff['location'] = df_stf_dep['location']
+    dim_staff['email_address'] = df_stf_dep['email_address']
+    dim_staff.sort_values('staff_id', inplace=True)
+    
+    return dim_staff
+
+
+def create_facts_sales_order_table():
     sales_order_table = pd.DataFrame() 
     sales_order_table.insert(0, "sales_record_id", range(1, 1 + len(df_sales_order)))
     sales_order_table["sales_order_id"] = df_sales_order["sales_order_id"]
-    sales_order_table["created_date"] = df_sales_order["created_at"]
-    sales_order_table["created_time"] = df_sales_order["created_at"]
-    sales_order_table["last_updated_date"] = df_sales_order["last_updated"]
-    sales_order_table["last_updated_time"] = df_sales_order["last_updated"]
+    sales_order_table[["created_date", "created_time"]] = df_sales_order["created_at"].apply(lambda x: pd.Series(str(x).split(" ")))
+    sales_order_table[["last_updated_date", "last_updated_time"]] = df_sales_order["last_updated"].apply(lambda x: pd.Series(str(x).split(" ")))
     sales_order_table["sales_staff_id"] = df_sales_order["staff_id"]
     sales_order_table["counterparty_id"] = df_sales_order["counterparty_id"]
     sales_order_table["units_sold"] = df_sales_order["units_sold"]
@@ -43,12 +118,10 @@ def create_facts_sales_order_table():
     sales_order_table["agreed_delivery_date"] = df_sales_order["agreed_delivery_date"]
     sales_order_table["agreed_delivery_location_id"] = df_sales_order["agreed_delivery_location_id"]
 
-
     return sales_order_table
 
 
 # facts_sales_order_table = create_facts_sales_order_table()
-
 
 
 # The following function will convert the dataframes to a parquet file
