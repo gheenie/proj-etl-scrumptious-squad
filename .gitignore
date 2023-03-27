@@ -19,3 +19,4 @@ venv/
 *.tfstate*
 *setup-test-db.txt
 .env*
+config/
