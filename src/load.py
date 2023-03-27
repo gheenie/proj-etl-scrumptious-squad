@@ -12,7 +12,6 @@ def read_data(parquet_path):
 def corruption_checker():
     pass
 
-
 # Make connection to data warehouse
 def make_warehouse_connection():
     load_dotenv()
@@ -35,9 +34,10 @@ def insert_into_warehouse():
 # Integrated function to combine all of the above
 def load_to_warehouse():
     try:
+        # Log status message to confirm load
         pass
-    # Log status message to confirm load
     except:
+        # Log status with helpful error message
         pass
 
 # Lambda_handler
