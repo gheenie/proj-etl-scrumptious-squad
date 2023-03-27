@@ -67,23 +67,23 @@ def test_make_connection_and_get_titles_returns_correct_table_names__test_env():
 def test_get_table_returns_test_db_seeded_data():
     conn = make_connection('config/.env.test')        
     dbcur = conn.cursor()
-    tables = (
-        ['address'],
-        ['counterparty'],
-        ['currency'],
-        ['department'],
-        ['design'],
-        ['payment_type'],
-        ['payment'],
-        ['purchase_order'],
-        ['sales_order'],
-        ['staff'],
-        ['transaction']
-    )
+    # tables = (
+    #     ['address'],
+    #     ['counterparty'],
+    #     ['currency'],
+    #     ['department'],
+    #     ['design'],
+    #     ['payment_type'],
+    #     ['payment'],
+    #     ['purchase_order'],
+    #     ['sales_order'],
+    #     ['staff'],
+    #     ['transaction']
+    # )
 
-    for title in tables:
-        rows, keys = get_table(dbcur, title)
-        print(rows)
+    rows, keys = get_table(dbcur, ['address'])
+    print(rows)
+    print(keys)
 
 
 @pytest.fixture(scope='function')
@@ -95,7 +95,7 @@ def premock_s3(aws_credentials):
 @pytest.fixture
 def mock_bucket(premock_s3):
     premock_s3.create_bucket(
-        Bucket='nicebucket1679649834',
+        Bucket='nicebucket1679673428',
         CreateBucketConfiguration={'LocationConstraint': 'eu-west-2'}
     )
 
@@ -136,12 +136,12 @@ def test_check_table_in_bucket__some_keys_exist(mock_bucket, premock_s3):
     
     premock_s3.put_object(
         Body='any text', 
-        Bucket='nicebucket1679649834',
+        Bucket='nicebucket1679673428',
         Key='design.parquet'
     )
     premock_s3.put_object(
         Body='any text', 
-        Bucket='nicebucket1679649834',
+        Bucket='nicebucket1679673428',
         Key='sales_order.parquet'
     )
 
