@@ -19,7 +19,7 @@ def get_bucket_name(bucket_prefix):
 # We need a function that will read the files from the "ingested data" s3 bucket
 
 def get_parquet(title):
-    bucketname = get_bucket_name('scrumptious-squad-pr-data-')
+    bucketname = get_bucket_name('scrumptious-squad-in-data-')
     s3 = boto3.client('s3')
     response =s3.list_objects_v2(Bucket=bucketname)
     filename = f"{title}.parquet"   
@@ -174,7 +174,7 @@ def push_to_cloud(object):
         print(key)
 
         s3 = boto3.client('s3')
-        get_bucket_name('scrumptious-squad-pr-data-')
+        bucketname = get_bucket_name('scrumptious-squad-pr-data-')
 
         out_buffer = BytesIO()
         values.to_parquet(out_buffer, index=False, compression="gzip")
