@@ -95,7 +95,7 @@ def premock_s3(aws_credentials):
 @pytest.fixture
 def mock_bucket(premock_s3):
     premock_s3.create_bucket(
-        Bucket='nicebucket1679673428',
+        Bucket='scrumptious-squad-in-data-testmock',
         CreateBucketConfiguration={'LocationConstraint': 'eu-west-2'}
     )
 
@@ -136,12 +136,12 @@ def test_check_table_in_bucket__some_keys_exist(mock_bucket, premock_s3):
     
     premock_s3.put_object(
         Body='any text', 
-        Bucket='nicebucket1679673428',
+        Bucket='scrumptious-squad-in-data-testmock',
         Key='design.parquet'
     )
     premock_s3.put_object(
         Body='any text', 
-        Bucket='nicebucket1679673428',
+        Bucket='scrumptious-squad-in-data-testmock',
         Key='sales_order.parquet'
     )
 

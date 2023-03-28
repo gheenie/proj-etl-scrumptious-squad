@@ -32,7 +32,7 @@ def premock_s3(aws_credentials):
 @pytest.fixture
 def mock_bucket_and_parquet_files(premock_s3):
     premock_s3.create_bucket(
-        Bucket='nicebucket1679922408',
+        Bucket='scrumptious-squad-in-data-testmock',
         CreateBucketConfiguration={'LocationConstraint': 'eu-west-2'}
     )
     
@@ -42,10 +42,8 @@ def mock_bucket_and_parquet_files(premock_s3):
 
 def test_your_test(mock_bucket_and_parquet_files, premock_s3):
     premock_s3.list_objects(
-        Bucket='nicebucket1679922408'
+        Bucket='scrumptious-squad-in-data-testmock'
     )
-    # address_table = premock_s3.get_object(Bucket='nicebucket1679922408',Key='address.parquet')
-    # print(address_table)
     address_table = get_parquet('address')
     print(address_table)
 
