@@ -238,7 +238,11 @@ def index(dotenv_path_string):
     add_updates(updates)
 
 
-
 # index('config/.env.development')
 
 
+def someting():
+    """
+    Placeholder for the lambda function
+    """
+    pass
