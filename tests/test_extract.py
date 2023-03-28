@@ -12,7 +12,6 @@ from src.extract import (
     get_bucket_name, 
     check_table_in_bucket, 
     check_each_table, 
-    push_to_cloud, 
     add_updates, 
     index
 )
@@ -192,10 +191,11 @@ def test_check_each_table__no_files_exist_yet(mock_bucket, premock_s3):
         ['staff'],
         ['transaction']
     )
+
     conn = make_connection('config/.env.test')        
     dbcur = conn.cursor()
-
     to_be_added = check_each_table(tables, dbcur)
+    
     address_df = to_be_added[0]['address']
     design_df = to_be_added[4]['design']
     sales_order_df = to_be_added[8]['sales_order']
