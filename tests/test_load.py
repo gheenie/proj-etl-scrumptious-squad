@@ -8,6 +8,8 @@ import boto3
 import botocore
 from pathlib import Path
 import os
+import pandas as pd
+
 
 # @pytest.fixture(scope='function')
 # def aws_credentials():
@@ -18,6 +20,7 @@ import os
 #     os.environ["AWS_SESSION_TOKEN"] = "testing"
 #     os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
 
+
 @mock_s3
 # Tests read_data func
 def test_reads_empty_bucket():
@@ -25,16 +28,21 @@ def test_reads_empty_bucket():
     conn.create_bucket(Bucket="test_bucket_28")
     actual = read_data('test_bucket_28')
     assert actual == {}
-    
-# def test_reads_contenet_of_bucket():
-#     with mock_s3:
-#         conn = boto3.resource("s3", region_name="us-east-1")
-#         conn.create_bucket(Bucket="test_bucket_28")
-#         insert_mock_data = conn.s3.put_object(Bucket="test_bucket_28", Key="test_key", Body={'test_body'}.encode("utf-8"))
-#         insert_mock_data.save()
-#         actual = read_data('test_bucket_28')
-#         print (actual)
-#         assert actual == {}
+
+
+@mock_s3
+def test_reads_contenet_of_bucket():
+    conn = boto3.client("s3", region_name="us-east-1")
+    conn.create_bucket(Bucket="test_bucket_28")
+    # read the contents of the Parquet file into memory
+    with open("./load_test_db/load.parquet", "rb") as f:
+        file_contents = f.read()
+    conn.put_object(Bucket="test_bucket_28", Key="test_key", Body=file_contents
+                    )
+    actual = read_data('test_bucket_28')
+    print(actual)
+    assert actual == {}
+
 
 def test_corruption_checker_outputs_success_message_if_okay():
     pass
