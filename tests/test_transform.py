@@ -1,6 +1,6 @@
 from src.transform import *
 import pandas as pd
-from src.make_parquet import (index, get_parquet)
+from src.extract import (index, get_parquet)
 import pytest
 import os
 from moto import (mock_secretsmanager, mock_s3)
