@@ -1,15 +1,12 @@
 import pandas as pd
-import pyarrow.parquet as pq
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import os
 import pg8000
 import boto3
 # import awswrangler
-from decouple import config
+# from decouple import config
 
-
-load_dotenv()
-
+# load_dotenv()
 
 # # converts to human-readable format for error handling
 def read_data(PROCESSED_DATA_BUCKET):
@@ -21,7 +18,6 @@ def read_data(PROCESSED_DATA_BUCKET):
         processed_s3_data = obj.get()['Body'].read()
         processed_s3_data[obj.key] = df
     return df
-
 
 print(read_data("scrumptious-squad-pr-data-20230323093358336100000006"))
 
