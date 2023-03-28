@@ -4,7 +4,7 @@ seeded data in extraction-test-db/setup-test-db.txt
 """
 
 
-from src.extract import (pull_secrets, make_connection, get_titles, get_table, get_bucket_name, check_table_in_bucket, index)
+from src.extract import (pull_secrets, make_connection, get_titles, get_table, get_bucket_name, check_table_in_bucket, check_each_table, index)
 from src.set_up.make_secrets import (entry)
 import pandas as pd
 import pytest
@@ -160,6 +160,57 @@ def test_check_table_in_bucket__some_keys_exist(mock_bucket, premock_s3):
             assert check_table_in_bucket(title) == True
         else:
             assert check_table_in_bucket(title) == False
+
+
+def test_check_each_table__no_files_exist_yet(mock_bucket, premock_s3):
+    """
+    Test check_each_table being called for the first time. The method would
+    return the prepared DataFrames from the seeded database.
+    """
+
+    tables = (
+        ['address'],
+        ['counterparty'],
+        ['currency'],
+        ['department'],
+        ['design'],
+        ['payment_type'],
+        ['payment'],
+        ['purchase_order'],
+        ['sales_order'],
+        ['staff'],
+        ['transaction']
+    )
+    conn = make_connection('config/.env.test')        
+    dbcur = conn.cursor()
+
+    to_be_added = check_each_table(tables, dbcur)
+    address_df = to_be_added[0]['address']
+    design_df = to_be_added[4]['design']
+    sales_order_df = to_be_added[8]['sales_order']
+
+    assert len(to_be_added) == 11
+    # Test one specific cell
+    assert address_df.loc[address_df.address_id == 5][['address_line_1']].values[0] == 'al1-e'
+    # Test number of columns
+    assert address_df.shape[1] == 10
+    # Test number of rows
+    assert address_df.shape[0] == 5
+    assert design_df.loc[design_df.design_id == 6][['file_name']].values[0] == 'file-f.json'
+    assert design_df.shape[1] == 6
+    assert design_df.shape[0] == 6
+    # Will fail on == '1', which works nicely for testing that a DataFrame preserves data type.
+    assert sales_order_df.loc[sales_order_df.sales_order_id == 4][['staff_id']].values[0] == 1
+    assert sales_order_df.shape[1] == 12
+    assert sales_order_df.shape[0] == 6
+
+
+# def test_get_parquet_returns_the_correct_dataframe(mock_bucket, premock_s3):
+#     """
+#     get_parquet will only be called if the table exists in the bucket.
+#     """
+
+#     check_each_table()
 
 
 @pytest.mark.skip
