@@ -4,7 +4,18 @@ seeded data in extraction-test-db/setup-test-db.txt
 """
 
 
-from src.extract import (pull_secrets, make_connection, get_titles, get_table, get_bucket_name, check_table_in_bucket, check_each_table, index)
+from src.extract import (
+    pull_secrets, 
+    make_connection, 
+    get_titles, 
+    get_table, 
+    get_bucket_name, 
+    check_table_in_bucket, 
+    check_each_table, 
+    push_to_cloud, 
+    add_updates, 
+    index
+)
 from src.set_up.make_secrets import (entry)
 import pandas as pd
 import pytest
@@ -203,6 +214,36 @@ def test_check_each_table__no_files_exist_yet(mock_bucket, premock_s3):
     assert sales_order_df.loc[sales_order_df.sales_order_id == 4][['staff_id']].values[0] == 1
     assert sales_order_df.shape[1] == 12
     assert sales_order_df.shape[0] == 6
+
+
+def test_push_to_cloud_and_add_updates_correctly_uploads_parquets_to_s3__no_files_exist_yet(mock_bucket, premock_s3):
+    tables = (
+        ['address'],
+        ['counterparty'],
+        ['currency'],
+        ['department'],
+        ['design'],
+        ['payment_type'],
+        ['payment'],
+        ['purchase_order'],
+        ['sales_order'],
+        ['staff'],
+        ['transaction']
+    )
+    
+    prepared_parquet_filenames = [title[0] + '.parquet' for title in tables]
+    prepared_parquet_filenames.sort()
+    
+    conn = make_connection('config/.env.test')        
+    dbcur = conn.cursor()
+    to_be_added = check_each_table(tables, dbcur)
+    add_updates(to_be_added)
+    
+    response = premock_s3.list_objects_v2(Bucket='scrumptious-squad-in-data-testmock')
+    response_file_names = [content['Key'] for content in (response['Contents'])]
+    response_file_names.sort()
+    
+    assert response_file_names == prepared_parquet_filenames
 
 
 # def test_get_parquet_returns_the_correct_dataframe(mock_bucket, premock_s3):
