@@ -8,23 +8,25 @@ import boto3
 import botocore
 from pathlib import Path
 import os
+import pyarrow
 import pandas as pd
+import awswrangler
 
 
-# @pytest.fixture(scope='function')
-# def aws_credentials():
-#     """Mocked AWS Credentials for moto."""
-#     os.environ["AWS_ACCESS_KEY_ID"] = "testing"
-#     os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
-#     os.environ["AWS_SECURITY_TOKEN"] = "testing"
-#     os.environ["AWS_SESSION_TOKEN"] = "testing"
-#     os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+@pytest.fixture(scope='function')
+def aws_credentials():
+    """Mocked AWS Credentials for moto."""
+    os.environ["AWS_ACCESS_KEY_ID"] = "testing"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
+    os.environ["AWS_SECURITY_TOKEN"] = "testing"
+    os.environ["AWS_SESSION_TOKEN"] = "testing"
+    os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
 
 
 @mock_s3
 # Tests read_data func
 def test_reads_empty_bucket():
-    conn = boto3.resource("s3", region_name="us-east-1")
+    conn = boto3.client("s3", region_name="us-east-1")
     conn.create_bucket(Bucket="test_bucket_28")
     actual = read_data('test_bucket_28')
     assert actual == {}
@@ -34,30 +36,18 @@ def test_reads_empty_bucket():
 def test_reads_contenet_of_bucket():
     conn = boto3.client("s3", region_name="us-east-1")
     conn.create_bucket(Bucket="test_bucket_28")
+    print(conn)
     # read the contents of the Parquet file into memory
     with open("./load_test_db/load.parquet", "rb") as f:
         file_contents = f.read()
-    conn.put_object(Bucket="test_bucket_28", Key="test_key", Body=file_contents
-                    )
+    conn.put_object(Bucket="test_bucket_28",
+                    Key="./load_test_db/load.parquet", Body=file_contents)
     actual = read_data('test_bucket_28')
     print(actual)
     assert actual == {}
 
 
-def test_corruption_checker_outputs_success_message_if_okay():
-    pass
-
-
-def test_corruption_checker_outputs_helpful_message_on_failure():
-    pass
-
-
-def test_corruption_checker_outputs_helpful_message_on_different_failure():
-    pass
-
 # Tests for make_connection subfunc
-
-
 def test_make_connection_func():
     pass
 

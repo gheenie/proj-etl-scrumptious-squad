@@ -1,52 +1,31 @@
 import pandas as pd
-# from dotenv import load_dotenv
+from dotenv import load_dotenv
+from os.path import join, dirname
 import os
 import pg8000
 import boto3
 # import awswrangler
-# from decouple import config
 
-# load_dotenv()
 
-# # converts to human-readable format for error handling
+dotenv_path = join(dirname(__file__), '../config/.env')
+load_dotenv(dotenv_path)
+
+# Gives the access to the bucket data
+
+
 def read_data(PROCESSED_DATA_BUCKET):
     df = {}
     s3 = boto3.resource('s3')
     bucket = s3.Bucket(PROCESSED_DATA_BUCKET)
-
-    for obj in bucket.objects.all():
-        processed_s3_data = obj.get()['Body'].read()
-        processed_s3_data[obj.key] = df
+    for obj in s3.buckets.all():
+        df = obj.get_available_subresources()
     return df
 
-print(read_data("scrumptious-squad-pr-data-20230323093358336100000006"))
-
-# s3 = boto3.resource('s3')
-# bucket = s3.Bucket(PROCESSED_DATA_BUCKET)
-# return pd.read_parquet(f"${parquet_path}", engine="auto")
-
-
-# print(PROCESSED_DATA_BUCKET)
-
-
-# def read_s3_data():
-#     processed_s3_data = {}
-#     df = awswrangler.s3.read_parquet(
-#         path=f"s3://{PROCESSED_DATA_BUCKET}/", dataset=True)
-
-#     processed_s3_data = df
-#     return processed_s3_data
-
-
-# Checks data is not corrupted
-def corruption_checker():
-    pass
 
 # Make connection to data warehouse
-
-
 def make_warehouse_connection():
-    load_dotenv()
+    dotenv_path = join(dirname(__file__), '../config/.env.data_warehouse')
+    load_dotenv(dotenv_path)
     API_HOST = config('host')
     API_USER = config('user')
     API_PASS = config('password')
@@ -58,6 +37,9 @@ def make_warehouse_connection():
         database=API_DBASE
     )
     return conn
+
+
+print(make_warehouse_connection())
 
 # Pushes parqueted data to data warehouse
 
