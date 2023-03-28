@@ -12,7 +12,8 @@ from src.extract import (
     check_table_in_bucket, 
     check_each_table, 
     add_updates, 
-    index
+    index,
+    get_parquet
 )
 from src.set_up.make_secrets import (entry)
 import pandas as pd
@@ -226,20 +227,26 @@ def test_push_to_cloud_and_add_updates_correctly_uploads_parquets_to_s3__no_file
 @pytest.mark.skip
 def test_get_parquet_returns_the_correct_dataframe(mock_bucket, premock_s3):
     """
-    get_parquet will only be called if the table exists in the bucket.
+    Assume file will exist, cause in the main code, get_parquet() 
+    will only be called after checking that the tables exist in the bucket.
     """
 
+    tables = (
+        ['address'],
+        ['counterparty'],
+        ['currency'],
+        ['department'],
+        ['design'],
+        ['payment_type'],
+        ['payment'],
+        ['purchase_order'],
+        ['sales_order'],
+        ['staff'],
+        ['transaction']
+    )
+
+    index('config/.env.test')
     check_each_table()
 
-
-@pytest.mark.skip
-def test_whole_extract_function(mock_bucket):
-    EXTRACTION_SEED_FOLDER = 'database_access/data/parquet'
-    SALES_ORDER_FILE = 'sales_order.parquet'
-
-    # Extract test database into .parquet files.
-    index('config/.env.test')
-    # Read one table into a DataFrame.
-    sales_order_table = pd.read_parquet(f'{EXTRACTION_SEED_FOLDER}/{SALES_ORDER_FILE}')
-    
-    assert sales_order_table.loc[sales_order_table.sales_order_id == 5][['staff_id']].values[0] == 2
+    for title in tables:
+        get_parquet(title)
