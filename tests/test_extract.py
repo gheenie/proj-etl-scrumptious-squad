@@ -150,7 +150,7 @@ def test_check_table_in_bucket__some_keys_exist(mock_bucket, premock_s3):
             assert check_table_in_bucket(title) == False
 
 
-def test_get_table_and_check_each_table__no_files_exist_yet(mock_bucket, premock_s3):
+def test_get_table_and_check_each_table__no_files_exist_yet(mock_bucket):
     """
     Test check_each_table being called for the first time. The method would
     return the prepared DataFrames from the seeded database.
@@ -224,7 +224,6 @@ def test_push_to_cloud_and_add_updates_correctly_uploads_parquets_to_s3__no_file
     assert response_file_names == prepared_parquet_filenames
 
 
-@pytest.mark.skip
 def test_get_parquet_returns_the_correct_dataframe(mock_bucket, premock_s3):
     """
     Assume file will exist, cause in the main code, get_parquet() 
@@ -246,7 +245,21 @@ def test_get_parquet_returns_the_correct_dataframe(mock_bucket, premock_s3):
     )
 
     index('config/.env.test')
-    check_each_table()
 
-    for title in tables:
-        get_parquet(title)
+    address_df = get_parquet(tables[0][0])
+    design_df = get_parquet(tables[4][0])
+    sales_order_df = get_parquet(tables[8][0])
+
+    # Test one specific cell
+    assert address_df.loc[address_df.address_id == 5][['address_line_1']].values[0] == 'al1-e'
+    # Test number of columns
+    assert address_df.shape[1] == 10
+    # Test number of rows
+    assert address_df.shape[0] == 5
+    assert design_df.loc[design_df.design_id == 6][['file_name']].values[0] == 'file-f.json'
+    assert design_df.shape[1] == 6
+    assert design_df.shape[0] == 6
+    # Will fail on == '1', which works nicely for testing that a DataFrame preserves data type.
+    assert sales_order_df.loc[sales_order_df.sales_order_id == 4][['staff_id']].values[0] == 1
+    assert sales_order_df.shape[1] == 12
+    assert sales_order_df.shape[0] == 6
