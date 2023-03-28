@@ -1,6 +1,6 @@
 DROP DATABASE
 CREATE DATABASE
-You are now connected to database "test_totesys" as user "gk".
+You are now connected to database "test_totesys" as user "dinunimmagadda".
 CREATE TABLE
 CREATE TABLE
 CREATE TABLE

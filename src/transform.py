@@ -5,6 +5,7 @@ from io import BytesIO
 import os
 
 
+# geting the right bucket
 def get_bucket_name(bucket_prefix):
     s3 = boto3.client('s3')
     response = s3.list_buckets()
@@ -13,11 +14,7 @@ def get_bucket_name(bucket_prefix):
         if bucket['Name'].startswith(bucket_prefix):
             return bucket['Name']
 
-
-# Check if we are using secret manager, if so we need to retrive the secret key
-
-# We need a function that will read the files from the "ingested data" s3 bucket
-
+# getting files from the bucket
 def get_parquet(title):
     bucketname = get_bucket_name('scrumptious-squad-in-data-')
     s3 = boto3.client('s3')
@@ -27,7 +24,7 @@ def get_parquet(title):
     if response['KeyCount'] == 0: return False
 
     if filename in [file['Key'] for file in response['Contents']]:       
-        print(filename)    
+        # print(filename)    
         buffer = BytesIO()
         client = boto3.resource('s3')
         object=client.Object(bucketname, filename)
@@ -36,25 +33,24 @@ def get_parquet(title):
         return df
 
 
-# We need a function to check_data_files
-# check the data is in the right format (readable parquet file) 
-#       if corrupted or in wrong format dont execute 
 
-# Not sure if the two functions mentioned above are combined in one?
-
-
-#  This currently reads the csv files and puts the outcome in a Dataframe. Eventually this will need to be changed to read the parquet files from the aws s3 bucket
-df_address = get_parquet('address')
-df_counterparty = get_parquet('counterparty')
-df_currency = get_parquet('currency')
-df_department = get_parquet('department')
-df_design = get_parquet('design')
-df_payment_type = get_parquet('payment_type')
-df_payment = get_parquet('payment')
-df_purchase_order = get_parquet('purchase_order')
-df_sales_order = get_parquet('sales_order')
-df_staff = get_parquet('staff')
-df_transaction = get_parquet('transaction')
+#  This currently reads the parquet files from the s3 bucket
+#  and puts the outcome in a Dataframe.
+def create_dataframes_from_toteys_database(title):
+    if title == 'address':
+        df_address = get_parquet('address')
+        return df_address
+    df_counterparty = get_parquet('counterparty')
+    df_currency = get_parquet('currency')
+    df_department = get_parquet('department')
+    df_design = get_parquet('design')
+    df_payment_type = get_parquet('payment_type')
+    df_payment = get_parquet('payment')
+    df_purchase_order = get_parquet('purchase_order')
+    df_sales_order = get_parquet('sales_order')
+    df_staff = get_parquet('staff')
+    df_transaction = get_parquet('transaction')
+    return 
 
 
 def create_dim_date(start_date, end_date):
@@ -65,6 +61,7 @@ def create_dim_date(start_date, end_date):
     dim_date['month'] = dim_date['date_id'].dt.month
     dim_date['day'] = dim_date['date_id'].dt.day
     dim_date['day_of_week'] = dim_date['date_id'].dt.isocalendar().day
+    dim_date['day_of_week'] = pd.to_numeric(dim_date['day_of_week'], errors="coerce").astype('int64')
     dim_date['day_name'] = dim_date['date_id'].dt.day_name()
     dim_date['month_name'] = dim_date['date_id'].dt.strftime('%B')
     dim_date['quarter'] = dim_date['date_id'].dt.quarter
@@ -151,7 +148,7 @@ def create_facts_sales_order_table():
 
     return sales_order_table
 
-
+# converting dataframes to dictionary
 dim_date = {'dim_date': create_dim_date('2022-01-01', '2050-01-01')}
 dim_location = {'dim_location' : create_dim_location()}
 dim_design = {'dim_design' : create_dim_design()}
@@ -161,28 +158,21 @@ dim_staff = {'dim_staff' : create_dim_staff()}
 facts_sales_order = {'facts_sales_order' : create_facts_sales_order_table()}
 
 
-# We need a function that will put the files into the "processed data" s3 bucket
-
+# this will put the files into the "processed data" s3 bucket
 def push_to_cloud(object): 
         #seperate key and value from object              
         key = [key for key in object.keys()][0]
         values = object[key] 
-
         #use key for file name, and value as the content for the file       
         values.to_parquet(f'./database_access/data/parquet/{key}.parquet') 
-
-        print(key)
-
+        # print(key)
         s3 = boto3.client('s3')
         bucketname = get_bucket_name('scrumptious-squad-pr-data-')
-
         out_buffer = BytesIO()
         values.to_parquet(out_buffer, index=False, compression="gzip")
-
         s3.upload_file(f'./database_access/data/parquet/{key}.parquet', bucketname, f'{key}.parquet')
         os.remove(f'./database_access/data/parquet/{key}.parquet')        
-       
-     
+
         return True
 
 
