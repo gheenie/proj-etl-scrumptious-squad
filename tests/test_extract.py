@@ -4,7 +4,7 @@ seeded data in extraction-test-db/setup-test-db.txt
 """
 
 
-from src.extract import (pull_secrets, make_connection, get_titles, get_table, check_table_in_bucket, index)
+from src.extract import (pull_secrets, make_connection, get_titles, get_table, get_bucket_name, check_table_in_bucket, index)
 from src.set_up.make_secrets import (entry)
 import pandas as pd
 import pytest
@@ -98,6 +98,16 @@ def mock_bucket(premock_s3):
         Bucket='scrumptious-squad-in-data-testmock',
         CreateBucketConfiguration={'LocationConstraint': 'eu-west-2'}
     )
+
+
+def test_get_bucket_name_returns_correct_name__name_exists(mock_bucket, premock_s3):
+    premock_s3.create_bucket(
+        Bucket='scrumptious-squad-pr-data-actually-different-name',
+        CreateBucketConfiguration={'LocationConstraint': 'eu-west-2'}
+    )
+
+    assert get_bucket_name('scrumptious-squad-in-data-') == 'scrumptious-squad-in-data-testmock'
+    assert get_bucket_name('scrumptious-squad-pr-data-') == 'scrumptious-squad-pr-data-actually-different-name'
 
 
 def test_check_table_in_bucket__0_existing_keys(mock_bucket):
