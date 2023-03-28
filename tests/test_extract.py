@@ -13,7 +13,8 @@ from src.extract import (
     check_each_table, 
     add_updates, 
     index,
-    get_parquet
+    get_parquet,
+    get_most_recent_time
 )
 from src.set_up.make_secrets import (entry)
 import pandas as pd
@@ -172,8 +173,8 @@ def test_get_table_and_check_each_table__no_files_exist_yet(mock_bucket):
 
     conn = make_connection('config/.env.test')        
     dbcur = conn.cursor()
-    to_be_added = check_each_table(tables, dbcur)
 
+    to_be_added = check_each_table(tables, dbcur)
     address_df = to_be_added[0]['address']
     design_df = to_be_added[4]['design']
     sales_order_df = to_be_added[8]['sales_order']
@@ -215,8 +216,8 @@ def test_push_to_cloud_and_add_updates_correctly_uploads_parquets_to_s3__no_file
     conn = make_connection('config/.env.test')        
     dbcur = conn.cursor()
     to_be_added = check_each_table(tables, dbcur)
+
     add_updates(to_be_added)
-    
     response = premock_s3.list_objects_v2(Bucket='scrumptious-squad-in-data-testmock')
     response_file_names = [content['Key'] for content in (response['Contents'])]
     response_file_names.sort()
@@ -230,25 +231,11 @@ def test_get_parquet_returns_the_correct_dataframe(mock_bucket, premock_s3):
     will only be called after checking that the tables exist in the bucket.
     """
 
-    tables = (
-        ['address'],
-        ['counterparty'],
-        ['currency'],
-        ['department'],
-        ['design'],
-        ['payment_type'],
-        ['payment'],
-        ['purchase_order'],
-        ['sales_order'],
-        ['staff'],
-        ['transaction']
-    )
-
     index('config/.env.test')
 
-    address_df = get_parquet(tables[0][0])
-    design_df = get_parquet(tables[4][0])
-    sales_order_df = get_parquet(tables[8][0])
+    address_df = get_parquet('address')
+    design_df = get_parquet('design')
+    sales_order_df = get_parquet('sales_order')
 
     # Test one specific cell
     assert address_df.loc[address_df.address_id == 5][['address_line_1']].values[0] == 'al1-e'
@@ -263,3 +250,25 @@ def test_get_parquet_returns_the_correct_dataframe(mock_bucket, premock_s3):
     assert sales_order_df.loc[sales_order_df.sales_order_id == 4][['staff_id']].values[0] == 1
     assert sales_order_df.shape[1] == 12
     assert sales_order_df.shape[0] == 6
+
+
+def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_not_last_row():
+    # tables = (
+    #     ['address'],
+    #     ['counterparty'],
+    #     ['currency'],
+    #     ['department'],
+    #     ['design'],
+    #     ['payment_type'],
+    #     ['payment'],
+    #     ['purchase_order'],
+    #     ['sales_order'],
+    #     ['staff'],
+    #     ['transaction']
+    # )
+
+    index('config/.env.test')
+
+    most_recent_address = get_most_recent_time('sales_order')
+
+    assert most_recent_address == {'created_at': 12, 'last_updated': 12}
