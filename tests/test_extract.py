@@ -8,7 +8,6 @@ from src.extract import (
     pull_secrets, 
     make_connection, 
     get_titles, 
-    get_table, 
     get_bucket_name, 
     check_table_in_bucket, 
     check_each_table, 
@@ -52,7 +51,7 @@ def test_pull_secrets_returns_correct_secrets(premock_secretsmanager):
     assert port == 5432
 
 
-def test_make_connection_and_get_titles_returns_correct_table_names__test_env():
+def test_make_connection_connects_to_seeded_db_and_get_titles_returns_correct_table_names():
     conn = make_connection('config/.env.test')        
     dbcur = conn.cursor()
     tables = get_titles(dbcur)
@@ -74,28 +73,6 @@ def test_make_connection_and_get_titles_returns_correct_table_names__test_env():
     assert tables == expected
 
 
-def test_get_table_returns_test_db_seeded_data():
-    conn = make_connection('config/.env.test')        
-    dbcur = conn.cursor()
-    # tables = (
-    #     ['address'],
-    #     ['counterparty'],
-    #     ['currency'],
-    #     ['department'],
-    #     ['design'],
-    #     ['payment_type'],
-    #     ['payment'],
-    #     ['purchase_order'],
-    #     ['sales_order'],
-    #     ['staff'],
-    #     ['transaction']
-    # )
-
-    rows, keys = get_table(dbcur, ['address'])
-    print(rows)
-    print(keys)
-
-
 @pytest.fixture(scope='function')
 def premock_s3(aws_credentials):
     with mock_s3():
@@ -108,8 +85,8 @@ def mock_bucket(premock_s3):
         Bucket='scrumptious-squad-in-data-testmock',
         CreateBucketConfiguration={'LocationConstraint': 'eu-west-2'}
     )
-
-
+    
+    
 def test_get_bucket_name_returns_correct_name__name_exists(mock_bucket, premock_s3):
     premock_s3.create_bucket(
         Bucket='scrumptious-squad-pr-data-actually-different-name',
@@ -172,7 +149,7 @@ def test_check_table_in_bucket__some_keys_exist(mock_bucket, premock_s3):
             assert check_table_in_bucket(title) == False
 
 
-def test_check_each_table__no_files_exist_yet(mock_bucket, premock_s3):
+def test_get_table_and_check_each_table__no_files_exist_yet(mock_bucket, premock_s3):
     """
     Test check_each_table being called for the first time. The method would
     return the prepared DataFrames from the seeded database.
@@ -195,7 +172,7 @@ def test_check_each_table__no_files_exist_yet(mock_bucket, premock_s3):
     conn = make_connection('config/.env.test')        
     dbcur = conn.cursor()
     to_be_added = check_each_table(tables, dbcur)
-    
+
     address_df = to_be_added[0]['address']
     design_df = to_be_added[4]['design']
     sales_order_df = to_be_added[8]['sales_order']
@@ -246,12 +223,13 @@ def test_push_to_cloud_and_add_updates_correctly_uploads_parquets_to_s3__no_file
     assert response_file_names == prepared_parquet_filenames
 
 
-# def test_get_parquet_returns_the_correct_dataframe(mock_bucket, premock_s3):
-#     """
-#     get_parquet will only be called if the table exists in the bucket.
-#     """
+@pytest.mark.skip
+def test_get_parquet_returns_the_correct_dataframe(mock_bucket, premock_s3):
+    """
+    get_parquet will only be called if the table exists in the bucket.
+    """
 
-#     check_each_table()
+    check_each_table()
 
 
 @pytest.mark.skip
