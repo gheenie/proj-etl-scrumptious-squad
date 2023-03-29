@@ -28,7 +28,7 @@ def test_reads_empty_bucket():
     conn = boto3.client("s3", region_name="us-east-1")
     conn.create_bucket(Bucket="test_bucket_28")
     actual = read_data('test_bucket_28')
-    assert actual == {}
+    assert actual == []
 
 
 @mock_s3

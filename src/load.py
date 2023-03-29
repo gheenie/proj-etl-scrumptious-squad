@@ -14,11 +14,11 @@ load_dotenv(dotenv_path)
 
 
 def read_data(PROCESSED_DATA_BUCKET):
-    df = {}
+    df = []
     s3 = boto3.resource('s3')
     bucket = s3.Bucket(PROCESSED_DATA_BUCKET)
-    for obj in s3.buckets.all():
-        df = obj.get_available_subresources()
+    for my_bucket_object in bucket.objects.all():
+        df.append(my_bucket_object.key)
     return df
 
 
