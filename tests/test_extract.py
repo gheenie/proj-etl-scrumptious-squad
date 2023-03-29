@@ -295,26 +295,7 @@ def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_not_l
     assert most_recent_times_sales_order == {'created_at': pd.Timestamp(2023, 2, 2, 11, 30), 'last_updated': pd.Timestamp(2023, 3, 3, 8, 45)}
 
 
-@pytest.fixture(scope='function')
-def extract_once():
-    """Call the extract function once to have the first-run .parquet files.
-
-    Usually this is needed by patched tests to call index() while it's unpatched. 
-    """
-
-    index('config/.env.test')
-
-
-@patch('src.extract.make_connection')
-def test_get_table_and_check_each_table__new_and_no_incoming_data__files_exist(mock_connection, mock_bucket, extract_once):
-    """
-    See test_get_most_recent_time_returns_correct_values__most_recent_entry_is_not_last_row()
-    regarding patching. 
-
-    This method of patching affects the whole test's function, but the first
-    extracting needs to happen while unpatched, so this is done via a fixture.
-    """
-
+def test_get_table_and_check_each_table__new_and_no_incoming_data__files_exist(mock_bucket):
     tables = (
         ['address'],
         ['counterparty'],
@@ -328,6 +309,9 @@ def test_get_table_and_check_each_table__new_and_no_incoming_data__files_exist(m
         ['staff'],
         ['transaction']
     )
+    
+    # Execute extraction once with the default seeded database.
+    index('config/.env.test')
 
     # Insert new entries into the seeded database
     conn = make_connection('config/.env.test')        
@@ -341,14 +325,13 @@ def test_get_table_and_check_each_table__new_and_no_incoming_data__files_exist(m
                    '''   
     dbcur.execute(query_string)
 
-    mock_connection.return_value = conn
-
+    # dbcur is pointing to the updated seed database
     to_be_added = check_each_table(tables, dbcur)
     # Only one table is updated in this test, so the index doesn't follow the tables variable
     sales_order_df = to_be_added[0]['sales_order']
 
     assert len(to_be_added) == 1
-    
+
     # Test number of columns
     assert sales_order_df.shape[1] == 12
     # Test number of rows
