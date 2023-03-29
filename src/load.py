@@ -4,6 +4,7 @@ from os.path import join, dirname
 import os
 import pg8000
 import boto3
+from pathlib import Path
 # import awswrangler
 
 
@@ -13,18 +14,15 @@ load_dotenv(dotenv_path)
 # Gives the access to the bucket data
 
 
-def read_data(PROCESSED_DATA_BUCKET):
-    df = []
-    s3 = boto3.resource('s3')
-    bucket = s3.Bucket(PROCESSED_DATA_BUCKET)
-    for my_bucket_object in bucket.objects.all():
-        df.append(my_bucket_object.key)
-    return df
+def get_data(bucket):
+    s3_client = boto3.client("s3")
+    bucket = s3_client.list_objects_v2(Bucket = bucket)
+    return bucket
 
 
 # Make connection to data warehouse
 def make_warehouse_connection():
-    dotenv_path = join(dirname(__file__), '../config/.env.data_warehouse')
+    dotenv_path = Path('./config/.env.data_warehouse')
     load_dotenv(dotenv_path)
     API_HOST =  os.environ["host"]
     API_USER = os.environ["user"]
@@ -38,8 +36,6 @@ def make_warehouse_connection():
     )
     return conn
 
-
-print(make_warehouse_connection())
 
 # Pushes parqueted data to data warehouse
 
