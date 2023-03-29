@@ -270,10 +270,12 @@ def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_last_
 def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_not_last_row(mock_connection, mock_bucket):
     """
     This test requires patching because of the way import works - when src.extract is
-    imported to this test file, it is already run once. Hence the seeded database in its default
-    state is used for the rest of the logic in src.extract. The first lines of code in this test
-    changes the seeded database's state, but this is only happening after that first run. To make
-    src.extract use the new state, it needs to be patched.
+    imported to this test file, it is run once. Hence the seeded database in its default
+    state is used to interpret conn and dbcur for the rest of the logic in src.extract. 
+    The first lines of code in this test changes the seeded database's state, 
+    but this is only happening after that first run. 
+    To make src.extract use the new state, it needs to be patched, 
+    unless the dbcur created in this test can be passed to the calls during ACT phase.
     """
 
     conn = make_connection('config/.env.test')
