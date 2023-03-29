@@ -352,7 +352,7 @@ def test_get_table_and_check_each_table__new_and_no_incoming_data__files_exist(m
     assert sales_order_df.loc[sales_order_df.sales_order_id == 8][['unit_price']].values[0] == 5.00
 
 
-def test_push_to_cloud_and_add_updates__new_and_no_incoming_data__files_exist():
+def test_push_to_cloud_and_add_updates__new_and_no_incoming_data__files_exist(mock_bucket, premock_s3):
     """
     See test_push_to_cloud_and_add_updates_correctly_uploads_parquets_to_s3__no_files_exist_yet().
 
@@ -395,8 +395,10 @@ def test_push_to_cloud_and_add_updates__new_and_no_incoming_data__files_exist():
     # response = premock_s3.list_objects_v2(Bucket='scrumptious-squad-in-data-testmock')
     # response_file_names = [content['Key'] for content in (response['Contents'])]
     # response_file_names.sort()
-    response_body = s3.get_object(Bucket='scrumptious-squad-in-data-testmock', Key='sales_order.parquet')['Body']
-    print(response_body.read().decode('utf-8'))
+    # response_body = premock_s3.get_object(Bucket='scrumptious-squad-in-data-testmock', Key='sales_order.parquet')['Body']
+    # print(response_body.read().decode('utf-8'))
+    response_body = premock_s3.get_object(Bucket='scrumptious-squad-in-data-testmock', Key='sales_order.parquet')
+    print(response_body)
     
     # assert response_file_names == prepared_parquet_filenames
     assert True == False
