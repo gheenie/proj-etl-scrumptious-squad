@@ -131,6 +131,7 @@ def get_most_recent_time(title):
 
     #table = pd.read_parquet(f"./database-access/data/parquet/{title[0]}.parquet", engine='pyarrow')
     table = get_parquet(title[0]) 
+    print(table)
        
 
     #compile a sorted list of 'last_updated' values and another sorted list of 'created_at' values existing inside previous readings
@@ -143,8 +144,8 @@ def get_most_recent_time(title):
 
     #returns most recent values in dict
     return {        
-        'created_at': last_update,
-        'last_updated': last_creation
+        'created_at': last_creation,
+        'last_updated': last_update
     }
 
 
@@ -153,6 +154,7 @@ def check_each_table(tables, dbcur):
 
     for title in tables:                      
         rows, keys = get_table(dbcur, title)
+        if title == ['sales_order']: print(rows)
         
         #if there are no existing parquet files storing our data, create them
         if not check_table_in_bucket(title): 
