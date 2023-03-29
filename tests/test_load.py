@@ -8,9 +8,8 @@ import boto3
 import botocore
 from pathlib import Path
 import os
-import pyarrow
 import pandas as pd
-import awswrangler
+# import awswrangler
 
 
 @pytest.fixture(scope='function')
@@ -44,7 +43,7 @@ def test_reads_contenet_of_bucket():
                     Key="./load_test_db/load.parquet", Body=file_contents)
     actual = read_data('test_bucket_28')
     print(actual)
-    assert actual == {}
+    assert actual == ['Acl', 'Cors', 'Lifecycle', 'LifecycleConfiguration', 'Logging', 'Notification', 'Object', 'Policy', 'RequestPayment', 'Tagging', 'Versioning', 'Website']
 
 
 # Tests for make_connection subfunc

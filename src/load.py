@@ -26,10 +26,10 @@ def read_data(PROCESSED_DATA_BUCKET):
 def make_warehouse_connection():
     dotenv_path = join(dirname(__file__), '../config/.env.data_warehouse')
     load_dotenv(dotenv_path)
-    API_HOST = config('host')
-    API_USER = config('user')
-    API_PASS = config('password')
-    API_DBASE = config('database')
+    API_HOST =  os.environ["host"]
+    API_USER = os.environ["user"]
+    API_PASS = os.environ["password"]
+    API_DBASE = os.environ["database"]
     conn = pg8000.connect(
         host=API_HOST,
         user=API_USER,
