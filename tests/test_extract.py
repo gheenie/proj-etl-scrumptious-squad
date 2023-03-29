@@ -252,23 +252,12 @@ def test_get_parquet_returns_the_correct_dataframe(mock_bucket, premock_s3):
     assert sales_order_df.shape[0] == 6
 
 
-def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_not_last_row():
-    # tables = (
-    #     ['address'],
-    #     ['counterparty'],
-    #     ['currency'],
-    #     ['department'],
-    #     ['design'],
-    #     ['payment_type'],
-    #     ['payment'],
-    #     ['purchase_order'],
-    #     ['sales_order'],
-    #     ['staff'],
-    #     ['transaction']
-    # )
-
+def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_not_last_row(mock_bucket):
     index('config/.env.test')
 
-    most_recent_address = get_most_recent_time('sales_order')
+    most_recent_address = get_most_recent_time(['sales_order'])
 
-    assert most_recent_address == {'created_at': 12, 'last_updated': 12}
+    assert most_recent_address == {'created_at': pd.Timestamp(2023, 1, 1, 10), 'last_updated': pd.Timestamp(2023, 1, 1, 10)}
+
+    # conn = make_connection('config/.env.test')        
+    # dbcur = conn.cursor()  
