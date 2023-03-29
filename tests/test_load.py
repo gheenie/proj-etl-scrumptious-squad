@@ -55,8 +55,7 @@ def test_retreiving_objects_in_the_bucket():
 def test_retreiving_objects_in_the_bucketss():
     bucket ="rand2"
     s3_client = boto3.client("s3")
-    s3 = fs.S3FileSystem(region='us-east-1')
-    res = s3_client.create_bucket(Bucket=bucket)
+    s3_client.create_bucket(Bucket=bucket)
     with open("./load_test_db/hello_test.parquet", "rb") as f:
         s3_client.upload_fileobj(f, f"{bucket}", "hello.parquet")
     bucket_objects = get_data(bucket)
