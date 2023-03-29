@@ -200,6 +200,11 @@ def test_get_table_and_check_each_table__no_files_exist_yet(mock_bucket):
 
 
 def test_push_to_cloud_and_add_updates_correctly_uploads_parquets_to_s3__no_files_exist_yet(mock_bucket, premock_s3):
+    """
+    This test isn't inspecting the contents of the uploaded files, only that the files
+    are present in the bucket.
+    """
+    
     tables = (
         ['address'],
         ['counterparty'],
@@ -348,4 +353,50 @@ def test_get_table_and_check_each_table__new_and_no_incoming_data__files_exist(m
 
 
 def test_push_to_cloud_and_add_updates__new_and_no_incoming_data__files_exist():
-    pass
+    """
+    See test_push_to_cloud_and_add_updates_correctly_uploads_parquets_to_s3__no_files_exist_yet().
+
+    This test does inspect the content of the uploaded files.
+    """
+
+    tables = (
+        ['address'],
+        ['counterparty'],
+        ['currency'],
+        ['department'],
+        ['design'],
+        ['payment_type'],
+        ['payment'],
+        ['purchase_order'],
+        ['sales_order'],
+        ['staff'],
+        ['transaction']
+    )
+
+    # Execute extraction once with the default seeded database.
+    index('config/.env.test')
+
+    # Insert new entries into the seeded database
+    conn = make_connection('config/.env.test')        
+    dbcur = conn.cursor()
+    query_string = '''INSERT INTO sales_order 
+                      (sales_order_id, created_at, last_updated, design_id, staff_id, counterparty_id, units_sold, unit_price, currency_id, agreed_delivery_date, agreed_payment_date, agreed_delivery_location_id)
+                      VALUES
+                      (7, '2023-02-02 11:30:00.000000', '2023-01-01 10:00:00.000000', 1, 4, 3, 50, 6.00, 2, '2023-09-09', '2023-09-09', 5),
+                      (8, '2023-01-01 10:00:00.000000', '2023-03-03 08:45:00.000000', 7, 3, 2, 40, 5.00, 3, '2023-09-09', '2023-09-09', 1),
+                      (9, '2023-01-01 10:00:00.000000', '2023-01-01 10:00:00.000000', 4, 2, 1, 30, 4.00, 1, '2023-09-09', '2023-09-09', 3);
+                   '''   
+    dbcur.execute(query_string)
+
+    # dbcur is pointing to the updated seed database
+    to_be_added = check_each_table(tables, dbcur)
+
+    add_updates(to_be_added)
+    # response = premock_s3.list_objects_v2(Bucket='scrumptious-squad-in-data-testmock')
+    # response_file_names = [content['Key'] for content in (response['Contents'])]
+    # response_file_names.sort()
+    response_body = s3.get_object(Bucket='scrumptious-squad-in-data-testmock', Key='sales_order.parquet')['Body']
+    print(response_body.read().decode('utf-8'))
+    
+    # assert response_file_names == prepared_parquet_filenames
+    assert True == False
