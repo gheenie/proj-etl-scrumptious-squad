@@ -262,7 +262,7 @@ def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_last_
 
 from src.extract import (get_table)
 from unittest.mock import patch
-@patch('src.extract.index.make_connection')
+@patch('src.extract.make_connection')
 def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_not_last_row(mock_connection, mock_bucket):
     conn = make_connection('config/.env.test')
     dbcur = conn.cursor()
