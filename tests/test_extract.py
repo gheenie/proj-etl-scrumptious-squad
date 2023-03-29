@@ -181,15 +181,18 @@ def test_get_table_and_check_each_table__no_files_exist_yet(mock_bucket):
     sales_order_df = to_be_added[8]['sales_order']
 
     assert len(to_be_added) == 11
-    # Test one specific cell
-    assert address_df.loc[address_df.address_id == 5][['address_line_1']].values[0] == 'al1-e'
+
     # Test number of columns
     assert address_df.shape[1] == 10
     # Test number of rows
     assert address_df.shape[0] == 5
-    assert design_df.loc[design_df.design_id == 6][['file_name']].values[0] == 'file-f.json'
+    # Test one specific cell
+    assert address_df.loc[address_df.address_id == 5][['address_line_1']].values[0] == 'al1-e'
+
     assert design_df.shape[1] == 6
     assert design_df.shape[0] == 6
+    assert design_df.loc[design_df.design_id == 6][['file_name']].values[0] == 'file-f.json'
+
     # Will fail on == '1', which works nicely for testing that a DataFrame preserves data type.
     assert sales_order_df.loc[sales_order_df.sales_order_id == 4][['staff_id']].values[0] == 1
     assert sales_order_df.shape[1] == 12
@@ -238,15 +241,17 @@ def test_get_parquet_returns_the_correct_dataframe(mock_bucket, premock_s3):
     design_df = get_parquet('design')
     sales_order_df = get_parquet('sales_order')
 
-    # Test one specific cell
-    assert address_df.loc[address_df.address_id == 5][['address_line_1']].values[0] == 'al1-e'
     # Test number of columns
     assert address_df.shape[1] == 10
     # Test number of rows
     assert address_df.shape[0] == 5
-    assert design_df.loc[design_df.design_id == 6][['file_name']].values[0] == 'file-f.json'
+    # Test one specific cell
+    assert address_df.loc[address_df.address_id == 5][['address_line_1']].values[0] == 'al1-e'
+
     assert design_df.shape[1] == 6
     assert design_df.shape[0] == 6
+    assert design_df.loc[design_df.design_id == 6][['file_name']].values[0] == 'file-f.json'
+
     # Will fail on == '1', which works nicely for testing that a DataFrame preserves data type.
     assert sales_order_df.loc[sales_order_df.sales_order_id == 4][['staff_id']].values[0] == 1
     assert sales_order_df.shape[1] == 12
@@ -324,7 +329,7 @@ def test_get_table_and_check_each_table__new_and_no_incoming_data__files_exist(m
         ['transaction']
     )
 
-    # Insert new entries into the seeded database.
+    # Insert new entries into the seeded database
     conn = make_connection('config/.env.test')        
     dbcur = conn.cursor()
     query_string = '''INSERT INTO sales_order 
@@ -343,6 +348,7 @@ def test_get_table_and_check_each_table__new_and_no_incoming_data__files_exist(m
     sales_order_df = to_be_added[0]['sales_order']
 
     assert len(to_be_added) == 1
+    
     # Test number of columns
     assert sales_order_df.shape[1] == 12
     # Test number of rows
