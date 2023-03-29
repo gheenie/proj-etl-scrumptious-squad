@@ -288,3 +288,73 @@ def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_not_l
     most_recent_times_sales_order = get_most_recent_time(['sales_order'])
 
     assert most_recent_times_sales_order == {'created_at': pd.Timestamp(2023, 2, 2, 11, 30), 'last_updated': pd.Timestamp(2023, 3, 3, 8, 45)}
+
+
+@pytest.fixture(scope='function')
+def extract_once():
+    """Call the extract function once to have the first-run .parquet files.
+
+    Usually this is needed by patched tests to call index() while it's unpatched. 
+    """
+
+    index('config/.env.test')
+
+
+@patch('src.extract.make_connection')
+def test_get_table_and_check_each_table__new_and_no_incoming_data__files_exist(mock_connection, mock_bucket, extract_once):
+    """
+    See test_get_most_recent_time_returns_correct_values__most_recent_entry_is_not_last_row()
+    regarding patching. 
+
+    This method of patching affects the whole test's function, but the first
+    extracting needs to happen while unpatched, so this is done via a fixture.
+    """
+
+    tables = (
+        ['address'],
+        ['counterparty'],
+        ['currency'],
+        ['department'],
+        ['design'],
+        ['payment_type'],
+        ['payment'],
+        ['purchase_order'],
+        ['sales_order'],
+        ['staff'],
+        ['transaction']
+    )
+
+    # Insert new entries into the seeded database.
+    conn = make_connection('config/.env.test')        
+    dbcur = conn.cursor()
+    query_string = '''INSERT INTO sales_order 
+                      (sales_order_id, created_at, last_updated, design_id, staff_id, counterparty_id, units_sold, unit_price, currency_id, agreed_delivery_date, agreed_payment_date, agreed_delivery_location_id)
+                      VALUES
+                      (7, '2023-02-02 11:30:00.000000', '2023-01-01 10:00:00.000000', 1, 4, 3, 50, 6.00, 2, '2023-09-09', '2023-09-09', 5),
+                      (8, '2023-01-01 10:00:00.000000', '2023-03-03 08:45:00.000000', 7, 3, 2, 40, 5.00, 3, '2023-09-09', '2023-09-09', 1),
+                      (9, '2023-01-01 10:00:00.000000', '2023-01-01 10:00:00.000000', 4, 2, 1, 30, 4.00, 1, '2023-09-09', '2023-09-09', 3);
+                   '''   
+    dbcur.execute(query_string)
+
+    mock_connection.return_value = conn
+
+    to_be_added = check_each_table(tables, dbcur)
+    # Only one table is updated in this test, so the index doesn't follow the tables variable
+    sales_order_df = to_be_added[0]['sales_order']
+
+    assert len(to_be_added) == 1
+    # Test number of columns
+    assert sales_order_df.shape[1] == 12
+    # Test number of rows
+    # Although 3 rows were added earlier, one of them doesn't have a later created_at or last_updated
+    assert sales_order_df.shape[0] == 2
+    # Test specific cells
+    assert sales_order_df.loc[sales_order_df.sales_order_id == 7][['currency_id']].values[0] == 2
+    assert sales_order_df.loc[sales_order_df.sales_order_id == 7][['agreed_delivery_date']].values[0] == '2023-09-09'
+    assert sales_order_df.loc[sales_order_df.sales_order_id == 8][['last_updated']].values[0] == pd.Timestamp(2023, 3, 3, 8, 45)
+    assert sales_order_df.loc[sales_order_df.sales_order_id == 8][['design_id']].values[0] == 7
+    assert sales_order_df.loc[sales_order_df.sales_order_id == 8][['unit_price']].values[0] == 5.00
+
+
+def test_push_to_cloud_and_add_updates__new_and_no_incoming_data__files_exist():
+    pass
