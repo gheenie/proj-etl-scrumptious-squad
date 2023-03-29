@@ -22,6 +22,7 @@ import pytest
 import os
 from moto import (mock_secretsmanager, mock_s3)
 import boto3
+from unittest.mock import patch
 
 
 @pytest.fixture(scope='function')
@@ -260,10 +261,16 @@ def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_last_
     assert most_recent_times_sales_order == {'created_at': pd.Timestamp(2023, 1, 1, 10), 'last_updated': pd.Timestamp(2023, 1, 1, 10)}
 
 
-from src.extract import (get_table)
-from unittest.mock import patch
 @patch('src.extract.make_connection')
 def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_not_last_row(mock_connection, mock_bucket):
+    """
+    This test requires patching because of the way import works - when src.extract is
+    imported to this test file, it is already run once. Hence the seeded database in its default
+    state is used for the rest of the logic in src.extract. The first lines of code in this test
+    changes the seeded database's state, but this is only happening after that first run. To make
+    src.extract use the new state, it needs to be patched.
+    """
+
     conn = make_connection('config/.env.test')
     dbcur = conn.cursor()
     query_string = '''INSERT INTO sales_order 
@@ -274,9 +281,6 @@ def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_not_l
                       (9, '2023-01-01 10:00:00.000000', '2023-01-01 10:00:00.000000', 4, 2, 1, 30, 4.00, 1, '2023-09-09', '2023-09-09', 3);
                    '''   
     dbcur.execute(query_string)
-    # temporary code to test the seeding works
-    rows, keys = get_table(dbcur, ['sales_order'])
-    print(rows)
 
     mock_connection.return_value = conn
     index('config/.env.test')
