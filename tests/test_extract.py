@@ -252,12 +252,35 @@ def test_get_parquet_returns_the_correct_dataframe(mock_bucket, premock_s3):
     assert sales_order_df.shape[0] == 6
 
 
-def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_not_last_row(mock_bucket):
+def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_last_row(mock_bucket):
     index('config/.env.test')
 
-    most_recent_address = get_most_recent_time(['sales_order'])
+    most_recent_times_sales_order = get_most_recent_time(['sales_order'])
 
-    assert most_recent_address == {'created_at': pd.Timestamp(2023, 1, 1, 10), 'last_updated': pd.Timestamp(2023, 1, 1, 10)}
+    assert most_recent_times_sales_order == {'created_at': pd.Timestamp(2023, 1, 1, 10), 'last_updated': pd.Timestamp(2023, 1, 1, 10)}
 
-    # conn = make_connection('config/.env.test')        
-    # dbcur = conn.cursor()  
+
+from src.extract import (get_table)
+from unittest.mock import patch
+@patch('src.extract.index.make_connection')
+def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_not_last_row(mock_connection, mock_bucket):
+    conn = make_connection('config/.env.test')
+    dbcur = conn.cursor()
+    query_string = '''INSERT INTO sales_order 
+                      (sales_order_id, created_at, last_updated,design_id, staff_id, counterparty_id, units_sold, unit_price, currency_id, agreed_delivery_date, agreed_payment_date, agreed_delivery_location_id)
+                      VALUES
+                      (7, '2023-02-02 11:30:00.000000', '2023-01-01 10:00:00.000000', 1, 4, 3, 50, 6.00, 2, '2023-09-09', '2023-09-09', 5),
+                      (8, '2023-01-01 10:00:00.000000', '2023-03-03 08:45:00.000000', 7, 3, 2, 40, 5.00, 3, '2023-09-09', '2023-09-09', 1),
+                      (9, '2023-01-01 10:00:00.000000', '2023-01-01 10:00:00.000000', 4, 2, 1, 30, 4.00, 1, '2023-09-09', '2023-09-09', 3);
+                   '''   
+    dbcur.execute(query_string)
+    # temporary code to test the seeding works
+    rows, keys = get_table(dbcur, ['sales_order'])
+    print(rows)
+
+    mock_connection.return_value = conn
+    index('config/.env.test')
+
+    most_recent_times_sales_order = get_most_recent_time(['sales_order'])
+
+    assert most_recent_times_sales_order == {'created_at': pd.Timestamp(2023, 2, 2, 11, 30), 'last_updated': pd.Timestamp(2023, 3, 3, 8, 45)}
