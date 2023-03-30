@@ -40,9 +40,6 @@ data "aws_iam_policy_document" "read_from_s3_document" {
 }
 
 
-# probably need write to s3 document in future - placeholder here
-
-
 data "aws_iam_policy_document" "log_to_cloudwatch_document" {
     statement {
         actions = [
@@ -77,6 +74,20 @@ data "aws_iam_policy_document" "access_secretsmanager_document" {
 
         resources = [
             "arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
+        ]
+    }
+}
+
+
+data "aws_iam_policy_document" "allow_all_s3_actions_document" {
+    statement {
+        actions = [
+            "s3:*"
+        ]
+
+        resources = [
+            "${aws_s3_bucket.ingested_data_bucket.arn}/*",
+            "${aws_s3_bucket.processed_data_bucket.arn}/*"
         ]
     }
 }
