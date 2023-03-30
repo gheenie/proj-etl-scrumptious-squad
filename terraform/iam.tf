@@ -50,3 +50,15 @@ resource "aws_iam_role_policy_attachment" "lambda_cloudwatch_policy_attachment" 
     role = aws_iam_role.lambda_role.name
     policy_arn = aws_iam_policy.log_to_cloudwatch_policy.arn
 }
+
+
+resource "aws_iam_policy" "access_secretsmanager_policy" {
+    name_prefix = "access-secretsmanager-policy-"
+    policy = data.aws_iam_policy_document.access_secretsmanager_document.json
+}
+
+
+resource "aws_iam_role_policy_attachment" "lambda_secretsmanager_policy_attachment" {
+    role = aws_iam_role.lambda_role.name
+    policy_arn = aws_iam_policy.access_secretsmanager_policy.arn
+}

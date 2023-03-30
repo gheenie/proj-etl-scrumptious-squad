@@ -67,3 +67,16 @@ data "aws_iam_policy_document" "log_to_cloudwatch_document" {
         ]
     }
 }
+
+
+data "aws_iam_policy_document" "access_secretsmanager_document" {
+    statement {
+        actions = [
+            "secretsmanager:GetSecretValue"
+        ]
+
+        resources = [
+            "arn:aws:secretsmanager:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
+        ]
+    }
+}
