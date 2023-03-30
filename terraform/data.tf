@@ -91,3 +91,16 @@ data "aws_iam_policy_document" "allow_all_s3_actions_document" {
         ]
     }
 }
+
+
+data "aws_iam_policy_document" "list_all_buckets_document" {
+    statement {
+        actions = [
+            "s3:ListAllMyBuckets"
+        ]
+
+        resources = [
+            "arn:aws:s3:::*"
+        ]
+    }
+}
