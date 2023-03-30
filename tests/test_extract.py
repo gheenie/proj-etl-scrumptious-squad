@@ -392,13 +392,15 @@ def test_push_to_cloud_and_add_updates__new_and_no_incoming_data__files_exist(mo
     to_be_added = check_each_table(tables, dbcur)
 
     add_updates(to_be_added)
-    # response = premock_s3.list_objects_v2(Bucket='scrumptious-squad-in-data-testmock')
-    # response_file_names = [content['Key'] for content in (response['Contents'])]
-    # response_file_names.sort()
-    # response_body = premock_s3.get_object(Bucket='scrumptious-squad-in-data-testmock', Key='sales_order.parquet')['Body']
-    # print(response_body.read().decode('utf-8'))
-    response_body = premock_s3.get_object(Bucket='scrumptious-squad-in-data-testmock', Key='sales_order.parquet')
-    print(response_body)
+    sales_order_df = get_parquet('sales_order')
     
-    # assert response_file_names == prepared_parquet_filenames
-    assert True == False
+    # Test number of columns
+    assert sales_order_df.shape[1] == 12
+    # Test number of rows
+    assert sales_order_df.shape[0] == 9
+    # Test specific cells
+    assert sales_order_df.loc[sales_order_df.sales_order_id == 7][['currency_id']].values[0] == 2
+    assert sales_order_df.loc[sales_order_df.sales_order_id == 7][['agreed_delivery_date']].values[0] == '2023-09-09'
+    assert sales_order_df.loc[sales_order_df.sales_order_id == 8][['last_updated']].values[0] == pd.Timestamp(2023, 3, 3, 8, 45)
+    assert sales_order_df.loc[sales_order_df.sales_order_id == 8][['design_id']].values[0] == 7
+    assert sales_order_df.loc[sales_order_df.sales_order_id == 8][['unit_price']].values[0] == 5.00
