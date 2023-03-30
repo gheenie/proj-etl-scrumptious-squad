@@ -51,14 +51,16 @@ def test_retreiving_objects_in_the_bucket():
     parquet_files = get_data(bucket)
     assert parquet_files['KeyCount'] == 1
     
-# @mock_s3
+@mock_s3
 def test_retreiving_objects_in_the_bucketss():
     bucket ="rand2"
     s3_client = boto3.client("s3")
     s3_client.create_bucket(Bucket=bucket)
     with open("./load_test_db/hello_test.parquet", "rb") as f:
         s3_client.upload_fileobj(f, f"{bucket}", "hello.parquet")
-    bucket_objects = get_data(bucket)
+    bucket_objects = s3_client.get_object(Bucket =bucket, Key = "hello.parquet")
+    print(bucket_objects)
+
     file_paths = [f's3://{bucket}/{obj["Key"]}' for obj in bucket_objects['Contents']]
     for file_path in file_paths:
         s3_file = pq.ParquetDataset(file_path)
