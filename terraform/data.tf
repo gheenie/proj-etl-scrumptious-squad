@@ -104,3 +104,17 @@ data "aws_iam_policy_document" "list_all_buckets_document" {
         ]
     }
 }
+
+
+data "aws_iam_policy_document" "list_root_objects_document" {
+    statement {
+        actions = [
+            "s3:ListBucket"
+        ]
+
+        resources = [
+            "${aws_s3_bucket.ingested_data_bucket.arn}",
+            "${aws_s3_bucket.processed_data_bucket.arn}"
+        ]
+    }
+}
