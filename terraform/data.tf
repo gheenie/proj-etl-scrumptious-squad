@@ -6,8 +6,9 @@ data "aws_region" "current" {}
 
 data "archive_file" "extract_zip" {
     type        = "zip"
-    source_file = var.extract_archive_source_path
+    source_dir = var.extract_archive_source_path
     output_path = var.extract_archive_output_path
+    depends_on = [null_resource.install_dependencies]
 }
 
 

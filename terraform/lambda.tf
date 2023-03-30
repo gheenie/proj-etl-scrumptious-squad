@@ -7,8 +7,7 @@ resource "aws_lambda_function" "extract_lambda" {
     # Links to a zip file, not a bucket & object
     filename = var.extract_archive_output_path
     source_code_hash = data.archive_file.extract_zip.output_base64sha256
-    #layers
-    layers=["arn:aws:lambda:us-east-1:${data.aws_caller_identity.current.account_id}:layer:AWSSDKPandas-Python39:1"]
+    layers = ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:1"]
 }
 
 
