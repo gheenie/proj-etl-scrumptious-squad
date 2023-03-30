@@ -5,7 +5,7 @@ import os
 import pg8000
 import boto3
 from pathlib import Path
-# import awswrangler
+
 
 
 dotenv_path = join(dirname(__file__), '../config/.env')
