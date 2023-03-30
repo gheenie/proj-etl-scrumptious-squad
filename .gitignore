@@ -18,4 +18,5 @@ venv/
 .terraform*
 *.tfstate*
 *setup-test-db.txt
-.env.*
+.env*
+config/
