@@ -9,6 +9,7 @@ resource "aws_lambda_function" "extract_lambda" {
     source_code_hash = data.archive_file.extract_zip.output_base64sha256
     layers           = ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:1"]
     memory_size      = 512
+    timeout          = 60
 }
 
 
@@ -23,6 +24,7 @@ resource "aws_lambda_function" "transform_lambda" {
     source_code_hash = data.archive_file.transform_zip.output_base64sha256
     layers           = ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:1"]
     memory_size      = 512
+    timeout          = 60
 }
 
 
@@ -37,7 +39,7 @@ resource "aws_lambda_function" "load_lambda" {
     source_code_hash = data.archive_file.load_zip.output_base64sha256
     layers           = ["arn:aws:lambda:us-east-1:336392948345:layer:AWSSDKPandas-Python39:1"]
     memory_size      = 512
-
+    timeout          = 60
 }
 
 
