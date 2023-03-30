@@ -241,8 +241,6 @@ def index(dotenv_path_string):
 # index('config/.env.development')
 
 
-def someting():
-    """
-    Placeholder for the lambda function
-    """
-    pass
+# Lambda handler
+def someting(event, context):
+    index('config/.env.development')
