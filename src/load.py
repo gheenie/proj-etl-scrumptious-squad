@@ -5,6 +5,8 @@ import boto3
 from pathlib import Path
 import io
 import pyarrow.parquet as pq
+import io
+import pyarrow.parquet as pq
 
 
 def get_data(bucket_name, file_path):
