@@ -3,6 +3,7 @@ resource "null_resource" "install_dependencies" {
         command = <<-EOT
             pip install pg8000 -t ./../data/src_extract
             pip install python-dotenv -t ./../data/src_extract
+            pip install python-dotenv -t ./../data/src_load
             EOT
     }
 
