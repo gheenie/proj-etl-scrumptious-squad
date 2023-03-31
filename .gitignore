@@ -20,3 +20,5 @@ data/
 *setup-test-db.txt
 .env*
 config/
+src/set_up/make_secrets.py
+
