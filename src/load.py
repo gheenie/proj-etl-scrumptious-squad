@@ -3,15 +3,19 @@ import os
 import pg8000
 import boto3
 from pathlib import Path
-import io
 import pyarrow.parquet as pq
 import io
-import pyarrow.parquet as pq
+import logging
+from botocore.exceptions import ClientError
+
+logger = logging.getLogger('MyLogger')
+logger.setLevel(logging.INFO)
 
 
 def get_data(bucket_name, file_path):
     s3 = boto3.client('s3')
-    objects = s3.list_objects_v2(Bucket=bucket_name, Prefix=file_path)['Contents']
+    objects = s3.list_objects_v2(
+        Bucket=bucket_name, Prefix=file_path)['Contents']
     dfs = {}
     for obj in objects:
         key = obj['Key']
@@ -77,6 +81,7 @@ def load_lambda_handler(event, context):
                 'statusCode': 500,
                 'body': 'Error: Unable to connect to the data warehouse'
             }
+        logger.info(f'Bucket is {bucket_name}')
         cur = conn.cursor()
         for table in dfs:
             table_name = table[3:]
@@ -93,9 +98,17 @@ def load_lambda_handler(event, context):
             'statusCode': 200,
             'body': 'Successfully loaded into data warehouse'
         }
-    except Exception as e:
-        print(f"Error loading data to the warehouse: {str(e)}")
+    except pg8000.core.DatabaseError as e:
+        print(f"Error Database does not exist: {str(e)}")
         return {
             'statusCode': 500,
             'body': f'Error loading data to the warehouse: {str(e)}'
         }
+    except ClientError as c:
+        if c.response['Error']['Code'] == 'NoSuchBucket':
+            logger.error(f'No such bucket - {bucket_name}')
+        else:
+            raise
+    except Exception as e:
+        logger.error(e)
+        raise RuntimeError
