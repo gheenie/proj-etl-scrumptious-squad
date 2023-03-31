@@ -12,44 +12,64 @@ resource "null_resource" "install_dependencies" {
 }
 
 
-resource "null_resource" "copy_src_extract" {
+resource "null_resource" "copy_src" {
     provisioner "local-exec" {
         # cp will not work if folder doesn't exist, so mkdir first.
-        # mkdir will not overwrite existing folders. -p flag will
-        # prevent erroring if folder exists.
+        # mkdir will not overwrite existing folders by default. 
+        # -p flag will prevent erroring if folder exists.
         command = <<-EOT
             mkdir -p ./../data/src_extract
-            cp -r ./../src/extract.py ./../data/src_extract/extract.py
-            EOT
-    }
-
-    triggers = {
-        src_file_hash = filemd5("./../src/extract.py")
-    }
-}
-
-resource "null_resource" "copy_src_transform" {
-    provisioner "local-exec" {
-        command = <<-EOT
             mkdir -p ./../data/src_transform
-            cp -r ./../src/transform.py ./../data/src_transform/transform.py
-            EOT
-    }
-
-    triggers = {
-        src_file_hash = filemd5("./../src/transform.py")
-    }
-}
-
-resource "null_resource" "copy_src_load" {
-    provisioner "local-exec" {
-        command = <<-EOT
             mkdir -p ./../data/src_load
+            cp -r ./../src/extract.py ./../data/src_extract/extract.py
+            cp -r ./../src/transform.py ./../data/src_transform/transform.py
             cp -r ./../src/load.py ./../data/src_load/load.py
             EOT
     }
 
     triggers = {
-        src_file_hash = filemd5("./../src/load.py")
+        src_folder_hash = data.archive_file.src_zip.output_md5
     }
 }
+
+# resource "null_resource" "copy_src_extract" {
+#     provisioner "local-exec" {
+#         # cp will not work if folder doesn't exist, so mkdir first.
+#         # mkdir will not overwrite existing folders. -p flag will
+#         # prevent erroring if folder exists.
+#         command = <<-EOT
+#             mkdir -p ./../data/src_extract
+#             cp -r ./../src/extract.py ./../data/src_extract/extract.py
+#             EOT
+#     }
+
+#     triggers = {
+#         src_file_hash = filemd5("./../src/extract.py")
+#     }
+# }
+
+# resource "null_resource" "copy_src_transform" {
+#     provisioner "local-exec" {
+#         command = <<-EOT
+#             mkdir -p ./../data/src_transform
+#             cp -r ./../src/transform.py ./../data/src_transform/transform.py
+#             EOT
+#     }
+
+#     triggers = {
+#         src_file_hash = filemd5("./../src/transform.py")
+#     }
+# }
+
+# resource "null_resource" "copy_src_load" {
+#     provisioner "local-exec" {
+#         command = <<-EOT
+#             mkdir -p ./../data/src_load
+#             cp -r ./../src/load.py ./../data/src_load/load.py
+#             EOT
+#     }
+
+#     triggers = {
+#         src_file_hash = filemd5("./../src/load.py")
+#     }
+# }
