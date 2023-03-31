@@ -1,6 +1,6 @@
 DROP DATABASE
 CREATE DATABASE
-You are now connected to database "test_warehouse" as user "melanieginescooke".
+You are now connected to database "test_warehouse" as user "thaliadevoe".
 CREATE TABLE
 CREATE TABLE
 CREATE TABLE
