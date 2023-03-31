@@ -44,12 +44,8 @@ def make_warehouse_connection(dotenv_path="./config/.env.data_warehouse"):
         return None
 
 
-def load_to_warehouse(bucket_name, file_path, dotenv_path):
+def load_to_warehouse(conn, dfs):
     try:
-        dfs = get_data(bucket_name, file_path)
-        conn = make_warehouse_connection(dotenv_path)
-        if conn is None:
-            return "Error: Unable to connect to the data warehouse"
         cur = conn.cursor()
         for table in dfs:
             table_name = table[3:]
@@ -68,7 +64,7 @@ def load_to_warehouse(bucket_name, file_path, dotenv_path):
         return None
 
 
-def lambda_handler(event, context):
+def load_lambda_handler(event, context):
     bucket_name = event['bucket_name']
     file_path = event['file_path']
     dotenv_path = event['dotenv_path']
