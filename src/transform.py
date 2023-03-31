@@ -34,20 +34,7 @@ def get_parquet(title):
 
 
 
-#  Read the parquet files from the s3 bucket
-#  and put the outcome in a Dataframe.
 
-df_address = get_parquet('address')
-df_counterparty = get_parquet('counterparty')
-df_currency = get_parquet('currency')
-df_department = get_parquet('department')
-df_design = get_parquet('design')
-df_payment_type = get_parquet('payment_type')
-df_payment = get_parquet('payment')
-df_purchase_order = get_parquet('purchase_order')
-df_sales_order = get_parquet('sales_order')
-df_staff = get_parquet('staff')
-df_transaction = get_parquet('transaction')
 
 
 
@@ -139,15 +126,6 @@ def create_facts_sales_order_table(df_sales_order):
     sales_order_table["agreed_delivery_location_id"] = df_sales_order["agreed_delivery_location_id"]
     return sales_order_table
 
-# Converts dataframes to dictionaries
-dim_date = {'dim_date': create_dim_date('2022-01-01', '2050-01-01')}
-dim_location = {'dim_location' : create_dim_location(df_address)}
-dim_design = {'dim_design' : create_dim_design(df_design)}
-dim_currency = {'dim_currency' : create_dim_currency(df_currency)}
-dim_counterparty = {'dim_counterparty' : create_dim_counterparty(df_address, df_counterparty)}
-dim_staff = {'dim_staff' : create_dim_staff(df_staff, df_department)}
-facts_sales_order = {'facts_sales_order' : create_facts_sales_order_table(df_sales_order)}
-
 
 # Put the files into the "processed data" s3 bucket
 def push_to_cloud(object): 
@@ -155,17 +133,41 @@ def push_to_cloud(object):
         key = [key for key in object.keys()][0]
         values = object[key] 
         #use key for file name, and value as the content for the file       
-        values.to_parquet(f'./database_access/data/parquet/{key}.parquet') 
+        values.to_parquet(f'/tmp/{key}.parquet') 
         # print(key)
         s3 = boto3.client('s3')
         bucketname = get_bucket_name('scrumptious-squad-pr-data-')
         out_buffer = BytesIO()
         values.to_parquet(out_buffer, index=False, compression="gzip")
-        s3.upload_file(f'./database_access/data/parquet/{key}.parquet', bucketname, f'{key}.parquet')
-        os.remove(f'./database_access/data/parquet/{key}.parquet')        
+        s3.upload_file(f'/tmp/{key}.parquet', bucketname, f'{key}.parquet')
+        os.remove(f'/tmp/{key}.parquet')        
         return True
 
 def transform():
+    #  Read the parquet files from the s3 bucket
+    #  and put the outcome in a Dataframe.
+
+    df_address = get_parquet('address')
+    df_counterparty = get_parquet('counterparty')
+    df_currency = get_parquet('currency')
+    df_department = get_parquet('department')
+    df_design = get_parquet('design')
+    # df_payment_type = get_parquet('payment_type')
+    # df_payment = get_parquet('payment')
+    # df_purchase_order = get_parquet('purchase_order')
+    df_sales_order = get_parquet('sales_order')
+    df_staff = get_parquet('staff')
+    # df_transaction = get_parquet('transaction')
+
+    # Converts dataframes to dictionaries
+    dim_date = {'dim_date': create_dim_date('2022-01-01', '2050-01-01')}
+    dim_location = {'dim_location' : create_dim_location(df_address)}
+    dim_design = {'dim_design' : create_dim_design(df_design)}
+    dim_currency = {'dim_currency' : create_dim_currency(df_currency)}
+    dim_counterparty = {'dim_counterparty' : create_dim_counterparty(df_address, df_counterparty)}
+    dim_staff = {'dim_staff' : create_dim_staff(df_staff, df_department)}
+    facts_sales_order = {'facts_sales_order' : create_facts_sales_order_table(df_sales_order)}
+
     push_to_cloud(dim_date)
     push_to_cloud(dim_location)
     push_to_cloud(dim_design)
@@ -174,4 +176,9 @@ def transform():
     push_to_cloud(dim_staff)
     push_to_cloud(facts_sales_order)
 
-transform()
+# transform()
+
+# Lambda handler
+def something(event, context):
+    transform()
+    # logger.info("Completed")
