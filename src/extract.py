@@ -34,13 +34,13 @@ def pull_secrets():
         secrets = json.loads(response['SecretString'])
         
         details = {
-        'user': secrets['user'][0],
-        'password': secrets['password'][0],
-        'database': secrets['database'][0],
-        'host':secrets['host'][0],
+        'user': secrets['user'],
+        'password': secrets['password'],
+        'database': secrets['database'],
+        'host':secrets['host'],
         'port':secrets['port']
         }
-        
+        print(details)
         return details['user'], details['password'], details['database'], details['host'], details['port'],
 
 
