@@ -1,6 +1,6 @@
 from src.transform import *
 import pandas as pd
-from src.extract import (index, get_parquet)
+from src.extract import (index)
 import pytest
 import datatest as dt
 import os
