@@ -2,7 +2,6 @@ from src.transform import *
 import pandas as pd
 from src.extract import (index)
 import pytest
-import datatest as dt
 import os
 from moto import (mock_secretsmanager, mock_s3)
 import boto3
