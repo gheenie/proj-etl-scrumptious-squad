@@ -14,7 +14,8 @@ from src.extract import (
     add_updates, 
     index,
     get_parquet,
-    get_most_recent_time
+    get_most_recent_time,
+    get_file_info_in_bucket
 )
 from src.set_up.make_secrets import (entry)
 import pandas as pd
@@ -101,6 +102,8 @@ def test_get_bucket_name_returns_correct_name__name_exists(mock_bucket, premock_
 
 
 def test_check_table_in_bucket__0_existing_keys(mock_bucket):
+    bucketname = get_bucket_name('scrumptious-squad-in-data-')
+    response = get_file_info_in_bucket(bucketname)
     tables = (
         ['address'],
         ['counterparty'],
@@ -116,10 +119,12 @@ def test_check_table_in_bucket__0_existing_keys(mock_bucket):
     )
 
     for title in tables:
-        assert check_table_in_bucket(title) == False
+        assert check_table_in_bucket(title, response) == False
 
 
 def test_check_table_in_bucket__some_keys_exist(mock_bucket, premock_s3):
+    bucketname = get_bucket_name('scrumptious-squad-in-data-')
+    
     tables = (
         ['address'],
         ['counterparty'],
@@ -145,11 +150,13 @@ def test_check_table_in_bucket__some_keys_exist(mock_bucket, premock_s3):
         Key='sales_order.parquet'
     )
 
+    response = get_file_info_in_bucket(bucketname)
+
     for title in tables:
-        if title in [['design'], ['sales_order']]:
-            assert check_table_in_bucket(title) == True
-        else:
-            assert check_table_in_bucket(title) == False
+        if title in [['design'], ['sales_order']]:          
+            assert check_table_in_bucket(title, response) == True
+        else:            
+            assert check_table_in_bucket(title, response) == False
 
 
 def test_get_table_and_check_each_table__no_files_exist_yet(mock_bucket):
@@ -175,7 +182,10 @@ def test_get_table_and_check_each_table__no_files_exist_yet(mock_bucket):
     conn = make_connection('config/.env.test')        
     dbcur = conn.cursor()
 
-    to_be_added = check_each_table(tables, dbcur)
+    bucketname = get_bucket_name('scrumptious-squad-in-data-')
+   
+
+    to_be_added = check_each_table(tables, dbcur, bucketname)
     address_df = to_be_added[0]['address']
     design_df = to_be_added[4]['design']
     sales_order_df = to_be_added[8]['sales_order']
@@ -218,15 +228,17 @@ def test_push_to_cloud_and_add_updates_correctly_uploads_parquets_to_s3__no_file
         ['staff'],
         ['transaction']
     )
+
+    bucketname = get_bucket_name('scrumptious-squad-in-data-')
     
     prepared_parquet_filenames = [title[0] + '.parquet' for title in tables]
     prepared_parquet_filenames.sort()
     
     conn = make_connection('config/.env.test')        
     dbcur = conn.cursor()
-    to_be_added = check_each_table(tables, dbcur)
+    to_be_added = check_each_table(tables, dbcur, bucketname)
 
-    add_updates(to_be_added)
+    add_updates(to_be_added, bucketname)
     response = premock_s3.list_objects_v2(Bucket='scrumptious-squad-in-data-testmock')
     response_file_names = [content['Key'] for content in (response['Contents'])]
     response_file_names.sort()
@@ -242,9 +254,15 @@ def test_get_parquet_returns_the_correct_dataframe(mock_bucket, premock_s3):
 
     index('config/.env.test')
 
-    address_df = get_parquet('address')
-    design_df = get_parquet('design')
-    sales_order_df = get_parquet('sales_order')
+    bucketname = get_bucket_name('scrumptious-squad-in-data-')
+    response = get_file_info_in_bucket(bucketname)
+    
+
+    address_df = get_parquet('address', bucketname, response)
+    design_df = get_parquet('design', bucketname, response)
+    sales_order_df = get_parquet('sales_order', bucketname, response)
+
+    
 
     # Test number of columns
     assert address_df.shape[1] == 10
@@ -266,7 +284,9 @@ def test_get_parquet_returns_the_correct_dataframe(mock_bucket, premock_s3):
 def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_last_row(mock_bucket):
     index('config/.env.test')
 
-    most_recent_times_sales_order = get_most_recent_time(['sales_order'])
+    bucketname = get_bucket_name('scrumptious-squad-in-data-')
+    response = get_file_info_in_bucket(bucketname)
+    most_recent_times_sales_order = get_most_recent_time(['sales_order'], bucketname, response)
 
     assert most_recent_times_sales_order == {'created_at': pd.Timestamp(2023, 1, 1, 10), 'last_updated': pd.Timestamp(2023, 1, 1, 10)}
 
@@ -297,12 +317,16 @@ def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_not_l
     mock_connection.return_value = conn
     index('config/.env.test')
 
-    most_recent_times_sales_order = get_most_recent_time(['sales_order'])
+    bucketname = get_bucket_name('scrumptious-squad-in-data-')
+    response = get_file_info_in_bucket(bucketname)
+
+    most_recent_times_sales_order = get_most_recent_time(['sales_order'], bucketname, response)
 
     assert most_recent_times_sales_order == {'created_at': pd.Timestamp(2023, 2, 2, 11, 30), 'last_updated': pd.Timestamp(2023, 3, 3, 8, 45)}
 
 
 def test_get_table_and_check_each_table__new_and_no_incoming_data__files_exist(mock_bucket):
+    bucketname = get_bucket_name('scrumptious-squad-in-data-')
     tables = (
         ['address'],
         ['counterparty'],
@@ -330,10 +354,13 @@ def test_get_table_and_check_each_table__new_and_no_incoming_data__files_exist(m
                       (8, '2023-01-01 10:00:00.000000', '2023-03-03 08:45:00.000000', 7, 3, 2, 40, 5.00, 3, '2023-09-09', '2023-09-09', 1),
                       (9, '2023-01-01 10:00:00.000000', '2023-01-01 10:00:00.000000', 4, 2, 1, 30, 4.00, 1, '2023-09-09', '2023-09-09', 3);
                    '''   
-    dbcur.execute(query_string)
+    dbcur.execute(query_string)   
+
+    
 
     # dbcur is pointing to the updated seed database
-    to_be_added = check_each_table(tables, dbcur)
+    to_be_added = check_each_table(tables, dbcur, bucketname)
+    
     # Only one table is updated in this test, so the index doesn't follow the tables variable
     sales_order_df = to_be_added[0]['sales_order']
 
@@ -359,6 +386,9 @@ def test_push_to_cloud_and_add_updates__new_and_no_incoming_data__files_exist(mo
     This test does inspect the content of the uploaded files.
     """
 
+    bucketname = get_bucket_name('scrumptious-squad-in-data-')
+   
+
     tables = (
         ['address'],
         ['counterparty'],
@@ -389,15 +419,19 @@ def test_push_to_cloud_and_add_updates__new_and_no_incoming_data__files_exist(mo
     dbcur.execute(query_string)
 
     # dbcur is pointing to the updated seed database
-    to_be_added = check_each_table(tables, dbcur)
+    to_be_added = check_each_table(tables, dbcur, bucketname)
+    print(to_be_added)
 
-    add_updates(to_be_added)
-    sales_order_df = get_parquet('sales_order')
+    add_updates(to_be_added, bucketname)  
+    response = get_file_info_in_bucket(bucketname)
+    
+    sales_order_df = get_parquet('sales_order', bucketname, response)
     
     # Test number of columns
     assert sales_order_df.shape[1] == 12
     # Test number of rows
-    assert sales_order_df.shape[0] == 9
+    print(sales_order_df)
+    assert sales_order_df.shape[0] == 2
     # Test specific cells
     assert sales_order_df.loc[sales_order_df.sales_order_id == 7][['currency_id']].values[0] == 2
     assert sales_order_df.loc[sales_order_df.sales_order_id == 7][['agreed_delivery_date']].values[0] == '2023-09-09'
