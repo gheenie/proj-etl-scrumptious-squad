@@ -4,13 +4,23 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 
+data "archive_file" "src_zip" {
+    type        = "zip"
+    source_dir = "${path.module}/../src"
+    output_path = "${path.module}/../data/src.zip"
+    excludes = [
+        "__pycache__"
+    ]
+}
+
+
 data "archive_file" "extract_zip" {
     type        = "zip"
     source_dir = var.extract_archive_source_path
     output_path = var.extract_archive_output_path
     depends_on = [
         null_resource.install_dependencies,
-        null_resource.copy_src_extract
+        null_resource.copy_src
     ]
 }
 
@@ -21,7 +31,7 @@ data "archive_file" "transform_zip" {
     output_path = var.transform_archive_output_path
     depends_on = [
         null_resource.install_dependencies,
-        null_resource.copy_src_transform
+        null_resource.copy_src
     ]
 }
 
@@ -32,7 +42,7 @@ data "archive_file" "load_zip" {
     output_path = var.load_archive_output_path
     depends_on = [
         null_resource.install_dependencies,
-        null_resource.copy_src_load
+        null_resource.copy_src
     ]
 }
 
