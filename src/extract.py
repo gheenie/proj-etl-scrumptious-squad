@@ -143,8 +143,8 @@ def get_most_recent_time(title):
 
     #returns most recent values in dict
     return {        
-        'created_at': last_update,
-        'last_updated': last_creation
+        'created_at': last_creation,
+        'last_updated': last_update
     }
 
 
@@ -241,8 +241,6 @@ def index(dotenv_path_string):
 # index('config/.env.development')
 
 
-def someting():
-    """
-    Placeholder for the lambda function
-    """
-    pass
+# Lambda handler
+def someting(event, context):
+    index('config/.env.development')

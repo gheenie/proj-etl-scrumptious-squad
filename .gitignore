@@ -14,7 +14,7 @@ serverless-output.yaml
 **/*pycache
 *coverage*
 venv/
-*.zip
+data/
 .terraform*
 *.tfstate*
 *setup-test-db.txt

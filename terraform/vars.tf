@@ -6,7 +6,7 @@ variable "sns_group_email" {
 
 variable "extract_archive_source_path" {
     type    = string
-    default = "./../src/extract.py"
+    default = "./../data/src"
 }
 
 
