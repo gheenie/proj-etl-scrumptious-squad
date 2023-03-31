@@ -73,48 +73,54 @@ def get_titles(dbcur):
     FROM information_schema.tables
     WHERE table_schema='public'
     AND table_type= 'BASE TABLE';"""
-    dbcur.execute(sql)
-    return dbcur.fetchall()  
+    try:
+        dbcur.execute(sql)
+        return dbcur.fetchall()
+    except Exception as e:
+        raise Exception(f"ERROR FETCHING TITLES: {e}")
+      
 
 
 def get_table(dbcur, title):
-    sql = f'SELECT * FROM {title[0]}'    
-    dbcur.execute(sql)
-    rows = dbcur.fetchall()     
-    keys = [k[0] for k in dbcur.description]   
-    return rows, keys
+    sql = f'SELECT * FROM {title[0]}'  
+    try:  
+        dbcur.execute(sql)
+        rows = dbcur.fetchall()     
+        keys = [k[0] for k in dbcur.description]   
+        return rows, keys
+    except Exception as e:
+        raise Exception(f"ERROR FETCHING TABLE {title[0]}: {e}")
 
+def get_objects(bucketname):
+    try:
+        s3 = boto3.client('s3') 
+        return s3.list_objects_v2(Bucket=bucketname)
+    except Exception as e:
+        raise Exception(f"ERROR CHECKING BUCKET IN TABLE: {e}")
 
 def get_bucket_name(bucket_prefix):
+    
     s3 = boto3.client('s3')
-    response = s3.list_buckets()
+    try:
+        response = s3.list_buckets()
+    except Exception as e:
+        raise Exception(f"ERROR FETCHING BUCKET NAME: {e}")
 
     for bucket in response['Buckets']:
         if bucket['Name'].startswith(bucket_prefix):
             return bucket['Name']
 
 
-def check_table_in_bucket(title):    
-        bucketname = get_bucket_name('scrumptious-squad-in-data-')
-        s3 = boto3.client('s3')
-        response = s3.list_objects_v2(Bucket=bucketname)
-
+def check_table_in_bucket(title, response):            
         if response['KeyCount'] == 0: return False
-
         filename = f"{title[0]}.parquet"  
-        filenames= [file['Key'] for file in response['Contents']]
-        
+        filenames= [file['Key'] for file in response['Contents']]        
         return filename in filenames
 
 
-def get_parquet(title):
-    bucketname = get_bucket_name('scrumptious-squad-in-data-')
-    s3 = boto3.client('s3')
-    response =s3.list_objects_v2(Bucket=bucketname)
-    filename = f"{title}.parquet"      
-
+def get_parquet(title, bucketname, response):   
+    filename = f"{title}.parquet"  
     if response['KeyCount'] == 0: return False
-
     if filename in [file['Key'] for file in response['Contents']]:       
         print(filename)    
         buffer = BytesIO()
@@ -125,17 +131,14 @@ def get_parquet(title):
         return df
 
 
-def get_most_recent_time(title):
+def get_most_recent_time(title, bucketname, response):
     #function to find most recent update and creation times for table rows to check which values need to be updated
     #https://www.striim.com/blog/change-data-capture-cdc-what-it-is-and-how-it-works/
     updates = []
     creations = []
-    
-    #read existing values
-
+ 
     #table = pd.read_parquet(f"./database-access/data/parquet/{title[0]}.parquet", engine='pyarrow')
-    table = get_parquet(title[0]) 
-       
+    table = get_parquet(title[0], bucketname, response)        
 
     #compile a sorted list of 'last_updated' values and another sorted list of 'created_at' values existing inside previous readings
     for date in set(table['last_updated']):bisect.insort(updates, date)
@@ -152,19 +155,21 @@ def get_most_recent_time(title):
     }
 
 
-def check_each_table(tables, dbcur):     
-    to_be_added= []
+
+def check_each_table(tables, dbcur, bucketname):     
+    to_be_added= []    
+    response = get_objects(bucketname)    
 
     for title in tables:                      
-        rows, keys = get_table(dbcur, title)
+        rows, keys = get_table(dbcur, title)        
         
         #if there are no existing parquet files storing our data, create them
-        if not check_table_in_bucket(title): 
+        if not check_table_in_bucket(title, response): 
             print(title, "to be added")          
             to_be_added.append({title[0]: pd.DataFrame(rows, columns=keys)})
         else:
             #extract the most recent readings
-            most_recent_readings = get_most_recent_time(title)
+            most_recent_readings = get_most_recent_time(title, bucketname, response)
 
             #extract raw data
             results = [dict(zip(keys, row)) for row in rows]
@@ -190,7 +195,7 @@ def check_each_table(tables, dbcur):
     return to_be_added
 
 
-def push_to_cloud(object): 
+def push_to_cloud(object, bucketname): 
         #seperate key and value from object              
         key = [key for key in object.keys()][0]
         values = object[key] 
@@ -200,23 +205,18 @@ def push_to_cloud(object):
 
         print(key)
 
-        s3 = boto3.client('s3')
-        bucketname = get_bucket_name('scrumptious-squad-in-data-')
-
-        out_buffer = BytesIO()
-        # values.to_parquet(out_buffer, index=False, compression="gzip")
-
+        s3 = boto3.client('s3')        
         s3.upload_file(f'/tmp/{key}.parquet', bucketname, f'{key}.parquet')
-        os.remove(f'/tmp/{key}.parquet')        
-       
+        os.remove(f'/tmp/{key}.parquet')   
      
         return True
 
 
-def  add_updates(updates):
-    #iterate through the list of dicts that need to be updated     
+def  add_updates(updates, bucketname):
+    #iterate through the list of dicts that need to be updated  
+       
     for object in updates:                 
-         push_to_cloud(object)
+         push_to_cloud(object, bucketname)
  
 
 
@@ -228,24 +228,31 @@ def index(dotenv_path_string):
      
      #connect to AWS RDS 
     conn = make_connection(dotenv_path_string)        
-    dbcur = conn.cursor()    
+    dbcur = conn.cursor() 
+
+    #get bucket name
+    bucketname = get_bucket_name('scrumptious-squad-in-data-')   
 
     #execute SQL query for finding a list of table names inside RDS and store it inside tables variable
     tables = get_titles(dbcur)
     
 
     #iterate through the table_names and check for any values which need to updated, storing them in the 'updates' variable
-    updates = check_each_table(tables, dbcur)  
+    updates = check_each_table(tables, dbcur, bucketname)  
     dbcur.close()                
                                   
             
-    add_updates(updates)
+    add_updates(updates, bucketname)
+    
 
 
-# index('config/.env.development')
+index('config/.env.development')
 
 
 # Lambda handler
 def someting(event, context):
     index('config/.env.development')
     logger.info("Completed")
+    print("done")
+
+
