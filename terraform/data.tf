@@ -8,21 +8,32 @@ data "archive_file" "extract_zip" {
     type        = "zip"
     source_dir = var.extract_archive_source_path
     output_path = var.extract_archive_output_path
-    depends_on = [null_resource.install_dependencies]
+    depends_on = [
+        null_resource.install_dependencies,
+        null_resource.copy_src_extract
+    ]
 }
 
 
 data "archive_file" "transform_zip" {
     type        = "zip"
-    source_file = var.transform_archive_source_path
+    source_dir = var.transform_archive_source_path
     output_path = var.transform_archive_output_path
+    depends_on = [
+        null_resource.install_dependencies,
+        null_resource.copy_src_transform
+    ]
 }
 
 
 data "archive_file" "load_zip" {
     type        = "zip"
-    source_file = var.load_archive_source_path
+    source_dir = var.load_archive_source_path
     output_path = var.load_archive_output_path
+    depends_on = [
+        null_resource.install_dependencies,
+        null_resource.copy_src_load
+    ]
 }
 
 
