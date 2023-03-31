@@ -18,6 +18,7 @@ data/
 .terraform*
 *.tfstate*
 *setup-test-db.txt
+*setup_test_warehouse.txt
 .env*
 config/
 src/set_up/make_secrets.py
