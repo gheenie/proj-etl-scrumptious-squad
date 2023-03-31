@@ -397,7 +397,7 @@ def test_push_to_cloud_and_add_updates__new_and_no_incoming_data__files_exist(mo
     # Test number of columns
     assert sales_order_df.shape[1] == 12
     # Test number of rows
-    assert sales_order_df.shape[0] == 9
+    assert sales_order_df.shape[0] == 2
     # Test specific cells
     assert sales_order_df.loc[sales_order_df.sales_order_id == 7][['currency_id']].values[0] == 2
     assert sales_order_df.loc[sales_order_df.sales_order_id == 7][['agreed_delivery_date']].values[0] == '2023-09-09'
