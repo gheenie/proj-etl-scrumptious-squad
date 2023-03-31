@@ -1,4 +1,5 @@
 import pg8000
+import pg8000.native
 import pandas as pd
 import bisect
 import boto3
@@ -70,7 +71,7 @@ def make_connection(dotenv_path_string):
         )
     
     return conn
-    
+
 
 def get_titles(dbcur):
     sql = """SELECT table_name
@@ -96,8 +97,9 @@ def get_whole_table(dbcur, title):
         raise Exception(f"ERROR FETCHING TABLE {title[0]}: {e}")
     
 def get_recents_table(dbcur, title, created, updated):
-    sql = f"SELECT * FROM {title[0]} WHERE (created_at > '{created}'::timestamp) OR (last_updated > '{updated}'::timestamp)"         
-    try:  
+    sql = f"SELECT * FROM {title[0]} WHERE (created_at > '{created}'::timestamp) OR (last_updated > '{updated}'::timestamp)"  
+       
+    try:         
         dbcur.execute(sql)
         rows = dbcur.fetchall()     
         keys = [k[0] for k in dbcur.description]   
@@ -240,7 +242,7 @@ def index(dotenv_path_string):
      #connect to AWS RDS 
     conn = make_connection(dotenv_path_string)        
     dbcur = conn.cursor() 
-
+ 
     #get bucket name
     bucketname = get_bucket_name('scrumptious-squad-in-data-')   
 
