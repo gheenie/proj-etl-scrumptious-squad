@@ -18,6 +18,7 @@ logger.setLevel(logging.INFO)
 logger.propagate = True
 
 
+
 @pytest.fixture(scope='function')
 def aws_credentials():
     """Mocked AWS Credentials for moto."""
@@ -30,7 +31,7 @@ def aws_credentials():
 
 @pytest.fixture(scope='function')
 def wrong_bucket_event():
-    with open('./test_data/incorrect_bucket.json') as i:
+    with open('tests/test_data/incorrect_bucket.json') as i:
         event = json.loads(i.read())
     return event
 
@@ -97,7 +98,7 @@ def test_load_to_warehouse(mock_make_connection):
         Body=open('./load_test_db/dim_currency.parquet', 'rb'))
     dfs = get_data(bucket_name, file_path)
     result = load_to_warehouse(conn, dfs)
-    assert result == 'Successfully loaded into data warehouse'
+    assert result['body'] == 'Successfully loaded into data warehouse'
 
 
 @mock_s3
@@ -121,8 +122,8 @@ def test_load_lambda_handler():
 @mock_s3
 def test_lambda_handler_logs_if_no_such_bucket(wrong_bucket_event, caplog):
     with caplog.at_level(logging.INFO):
-        load_lambda_handler({}, wrong_bucket_event)
-        assert 'No such bucket - wrong_bucket' in caplog.text
+        load_lambda_handler({'bucket_name': 'bucket_name', 'file_path': 'file_path', 'dotenv_path': 'dotenv_path'}, wrong_bucket_event)
+        assert 'No such bucket - bucket_name' in caplog.text
 
 
 @mock_s3

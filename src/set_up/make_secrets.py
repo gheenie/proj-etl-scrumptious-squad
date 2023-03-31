@@ -27,10 +27,10 @@ def get_inputs():
     # Get inputs from user
     secret_identifier = 'source_DB'
 
-    database='totesys',
-    user='project_user_4',
-    password='LC7zJxE3BfvY7p',
-    host='nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com',
+    database='totesys'
+    user='project_user_4'
+    password='LC7zJxE3BfvY7p'
+    host='nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com'
     port=5432 
 
     # Define the secret to be stored
@@ -52,6 +52,35 @@ def entry():
     return create_secret(secret, secret_id)  
 
 print(entry())
+
+def secrets_warehouse():
+
+    secret_identifier = 'cred_DW'
+    host = 'nc-data-eng-project-dw-prod.chpsczt8h1nu.eu-west-2.rds.amazonaws.com'
+    port =  5432
+    user = 'project_team_4'
+    password = '9Fy8qy8VsqTjuN'
+    database =  'postgres'
+    schema =  'project_team_4'
+
+    secret = {
+        'user': user,
+        'password': password,
+        'database': database,
+        'host':host,
+        'port':port,
+        'schema':schema
+
+    }
+
+    return secret, secret_identifier
+
+def entry():
+    secret, secret_id = secrets_warehouse()   
+    return create_secret(secret, secret_id)  
+
+print(entry())
+
 
 
 

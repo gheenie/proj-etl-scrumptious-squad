@@ -6,10 +6,41 @@ from pathlib import Path
 import pyarrow.parquet as pq
 import io
 import logging
+import json
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger('MyLogger')
 logger.setLevel(logging.INFO)
+
+def pull_secrets():
+    
+    secret_name = 'cred_DW'     
+    secrets_manager = boto3.client('secretsmanager')
+
+    try:               
+        response = secrets_manager.get_secret_value(SecretId=secret_name)  
+
+    except ClientError as e:            
+        error_code = e.response['Error']['Code']
+
+        print(error_code)
+        if error_code == 'ResourceNotFoundException':            
+            raise Exception(f'ERROR: name not found') 
+        else:           
+            raise Exception(f'ERROR : {error_code}')
+    else:
+        secrets = json.loads(response['SecretString'])
+        
+        details = {
+        'user': secrets['user'][0],
+        'password': secrets['password'][0],
+        'database': secrets['database'][0],
+        'host':secrets['host'][0],
+        'port':secrets['port'],
+        'schema': secrets['schema']
+        }
+        
+        return details['user'], details['password'], details['database'], details['host'], details['port'], details['schema']
 
 
 def get_data(bucket_name, file_path):
@@ -30,6 +61,7 @@ def get_data(bucket_name, file_path):
 
 def make_warehouse_connection(dotenv_path="./config/.env.data_warehouse"):
     try:
+        
         dotenv = Path(dotenv_path)
         load_dotenv(dotenv)
         API_HOST = os.environ["host"]
@@ -49,23 +81,22 @@ def make_warehouse_connection(dotenv_path="./config/.env.data_warehouse"):
 
 
 def load_to_warehouse(conn, dfs):
-    try:
-        cur = conn.cursor()
-        for table in dfs:
-            table_name = table[3:]
-            print(f"Loading table {table_name}")
-            for index, row in dfs[table].iterrows():
-                values = ', '.join(['%s'] * len(row))
-                columns = ', '.join(row.index)
-                sql = f"INSERT INTO {table_name} ({columns}) VALUES ({values})"
-                cur.execute(sql, tuple(row))
-        conn.commit()
-        cur.close()
-        conn.close()
-        return "Successfully loaded into data warehouse"
-    except Exception as e:
-        print(f"Error loading data to the warehouse: {str(e)}")
-        return None
+    cur = conn.cursor()
+    for table in dfs:
+        table_name = table[3:]
+        print(f"Loading table {table_name}")
+        for index, row in dfs[table].iterrows():
+            values = ', '.join(['%s'] * len(row))
+            columns = ', '.join(row.index)
+            sql = f"INSERT INTO {table_name} ({columns}) VALUES ({values})"
+            cur.execute(sql, tuple(row))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return {
+        'statusCode': 200,
+        'body': 'Successfully loaded into data warehouse'
+    }
 
 
 def load_lambda_handler(event, context):
@@ -82,22 +113,7 @@ def load_lambda_handler(event, context):
                 'body': 'Error: Unable to connect to the data warehouse'
             }
         logger.info(f'Bucket is {bucket_name}')
-        cur = conn.cursor()
-        for table in dfs:
-            table_name = table[3:]
-            print(f"Loading table {table_name}")
-            for index, row in dfs[table].iterrows():
-                values = ', '.join(['%s'] * len(row))
-                columns = ', '.join(row.index)
-                sql = f"INSERT INTO {table_name} ({columns}) VALUES ({values})"
-                cur.execute(sql, tuple(row))
-        conn.commit()
-        cur.close()
-        conn.close()
-        return {
-            'statusCode': 200,
-            'body': 'Successfully loaded into data warehouse'
-        }
+        return load_to_warehouse(conn=conn,dfs=dfs)
     except pg8000.core.DatabaseError as e:
         print(f"Error Database does not exist: {str(e)}")
         return {
