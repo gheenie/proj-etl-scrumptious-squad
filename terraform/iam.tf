@@ -88,3 +88,7 @@ resource "aws_iam_role_policy_attachment" "lambda_list_root_objects_policy_attac
     role       = aws_iam_role.lambda_role.name
     policy_arn = aws_iam_policy.list_root_objects_policy.arn
 }
+
+
+
+
