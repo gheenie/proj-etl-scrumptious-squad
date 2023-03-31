@@ -138,7 +138,10 @@ def get_most_recent_time(title, bucketname, response):
     creations = []
  
     #table = pd.read_parquet(f"./database-access/data/parquet/{title[0]}.parquet", engine='pyarrow')
-    table = get_parquet(title[0], bucketname, response)        
+    table = get_parquet(title[0], bucketname, response)   
+
+    maxi = table.query(f'SELECT * FROM')
+    print(maxi)     
 
     #compile a sorted list of 'last_updated' values and another sorted list of 'created_at' values existing inside previous readings
     for date in set(table['last_updated']):bisect.insort(updates, date)
