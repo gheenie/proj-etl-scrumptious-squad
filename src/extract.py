@@ -8,7 +8,11 @@ from io import BytesIO
 import os
 from dotenv import load_dotenv
 from pathlib import Path
+import logging
 
+
+logger = logging.getLogger('MyLogger')
+logger.setLevel(logging.INFO)
 
 def pull_secrets():
     
@@ -23,9 +27,9 @@ def pull_secrets():
 
         print(error_code)
         if error_code == 'ResourceNotFoundException':            
-            return (f'ERROR: name not found') 
+            raise Exception(f'ERROR: name not found') 
         else:           
-            return(f'ERROR : {error_code}')
+            raise Exception(f'ERROR : {error_code}')
     else:
         secrets = json.loads(response['SecretString'])
         
@@ -192,7 +196,7 @@ def push_to_cloud(object):
         values = object[key] 
 
         #use key for file name, and value as the content for the file       
-        values.to_parquet(f'./database_access/data/parquet/{key}.parquet') 
+        values.to_parquet(f'/tmp/{key}.parquet') 
 
         print(key)
 
@@ -202,8 +206,8 @@ def push_to_cloud(object):
         out_buffer = BytesIO()
         # values.to_parquet(out_buffer, index=False, compression="gzip")
 
-        s3.upload_file(f'./database_access/data/parquet/{key}.parquet', bucketname, f'{key}.parquet')
-        os.remove(f'./database_access/data/parquet/{key}.parquet')        
+        s3.upload_file(f'/tmp/{key}.parquet', bucketname, f'{key}.parquet')
+        os.remove(f'/tmp/{key}.parquet')        
        
      
         return True
@@ -244,3 +248,4 @@ def index(dotenv_path_string):
 # Lambda handler
 def someting(event, context):
     index('config/.env.development')
+    logger.info("Completed")

@@ -6,7 +6,7 @@ variable "sns_group_email" {
 
 variable "extract_archive_source_path" {
     type    = string
-    default = "./../data/src"
+    default = "./../data/src_extract"
 }
 
 
@@ -18,7 +18,7 @@ variable "extract_archive_output_path" {
 
 variable "transform_archive_source_path" {
     type    = string
-    default = "./../src/transform.py"
+    default = "./../data/src_transform"
 }
 
 
@@ -30,7 +30,7 @@ variable "transform_archive_output_path" {
 
 variable "load_archive_source_path" {
     type    = string
-    default = "./../src/load.py"
+    default = "./../data/src_load"
 }
 
 
