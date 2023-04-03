@@ -10,8 +10,7 @@ on:
 
 
 jobs:
-  psql:
-  name: Setup psql
+  build:
   runs-on: ubuntu-latest
     steps:
       # Downloads a copy of the code in your repository before running CI tests
@@ -32,7 +31,7 @@ jobs:
         # a new PostgreSQL table.
         env:
           # The hostname used to communicate with the PostgreSQL service container
-          POSTGRES_HOST: localhost
+          POSTGRES_HOST: localhost          
           # The default PostgreSQL port
           POSTGRES_PORT: 5432
 
