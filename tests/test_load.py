@@ -79,14 +79,14 @@ def test_get_data_dim_currency():
 @mock_secretsmanager
 def test_connection_to_warehouse():
     secret_id = 'cred_DW'
-    user_id = 'dinunimmagadda'
-    password = 'Dinuece@7'
-    host = 'localhost'
-    port = 5432
-    database = 'test_warehouse'
-    schema = 'team_4'
+    host='nc-data-eng-project-dw-prod.chpsczt8h1nu.eu-west-2.rds.amazonaws.com'
+    port=5432
+    user='project_team_4'
+    password='9Fy8qy8VsqTjuN'
+    database='postgres'
+    schema='project_team_4'
     secret = {
-        'user': user_id,
+        'user': user,
         'password': password,
         'database': database,
         'host':host,
@@ -133,22 +133,3 @@ def test_load_lambda_handler():
         result = load_lambda_handler(
             {'bucket_prefix': bucket_prefix, 'file_path': file_path, 'secret_id': 'cred_DW'}, None)
         assert 'Successfully loaded into data warehouse' in result['body']
-
-
-# @mock_s3
-# def test_load_lambda_handler_with_non_existing_bucket():
-#     s3 = boto3.client('s3')
-#     bucket_name = 'test-bucket'
-#     s3.create_bucket(Bucket=bucket_name)
-#     event = {
-#         'bucket_prefix': 'test',
-#         'file_path': 'data/parquet',
-#         'secret_id': 'secret-id'
-#     }
-
-#     # Call the function with the event payload
-#     with pytest.raises(ClientError) as e:
-#         load_lambda_handler(event, None)
-
-#     # Ensure that the correct error message is returned
-#     assert 'NoSuchBucket' in str(e.value)
