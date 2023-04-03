@@ -3,6 +3,7 @@
 name: deploy-etl-apps
 
 on:
+  # Allow manual triggers on GitHub
   workflow_dispatch:
   # push:
   #   branches:
@@ -10,36 +11,35 @@ on:
   push:
 
 jobs:
-  # psql:
-  # name: Setup psql
-  # runs-on: ubuntu-latest
-  #   steps:
-  #     # Downloads a copy of the code in your repository before running CI tests
-  #     - name: Check out repository code
-  #       uses: actions/checkout@v3
+  # Label of the runner job
+  runner-job:
+    # You must use a Linux environment when using service containers or container jobs
+    runs-on: ubuntu-latest
 
-  #     # Performs a clean installation of all dependencies in the `package.json` file
-  #     # For more information, see https://docs.npmjs.com/cli/ci.html
-  #     - name: Install dependencies
-  #       run: npm ci
-
-  #     - name: Connect to PostgreSQL
-  #       # Runs a script that creates a PostgreSQL table, populates
-  #       # the table with data, and then retrieves the data
-  #       run: psql -f ./../load_test_warehouse_setup/test_warehouse_setup/setup_test_warehouse.sql
-  #       run: psql -f ./../extraction_test_db/test_db_setup/
-  #       # Environment variables used by the `client.js` script to create
-  #       # a new PostgreSQL table.
-  #       env:
-  #         # The hostname used to communicate with the PostgreSQL service container
-  #         POSTGRES_HOST: localhost
-  #         # The default PostgreSQL port
-  #         POSTGRES_PORT: 5432
+    # Service containers to run with `runner-job`
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
 
   run-tests:
     name: Setup environment and run tests
     runs-on: ubuntu-latest
     steps:
+      # Downloads a copy of the code in your repository before running CI tests
       - name: Checkout Repo
         uses: actions/checkout@v3
       - name: Get Python
@@ -48,15 +48,24 @@ jobs:
           python-version: '3.9'
       - name: Install Make
         run: sudo apt install make -y
-      - name: Install postgreSQL
-        run: sudo apt install postgresql postgresql-contrib -y
-      - name: Set psql password
-        run: export PGPASSWORD=gha_pw
-      - name: Create default psql user
-        run: sudo -u postgres createuser --superuser gha_user
+      # Performs a clean installation of all dependencies in the `requirements.txt` file
       - name: Install dependencies and run checks
         # run: make all
         run: make dev-setup
+      # Run pytest itself instead of using make.
+      - name: Activate virtual env
+        run: source venv/bin/activate
+      - name: Set the root of project as PYTHONPATH
+        run: export PYTHONPATH=$(pwd)
+      - name: Run tests
+        run: pytest tests/test_extract.py
+        # Environment variables used by the test script to create
+        # and use seed databases.
+        env:
+          # The hostname used to communicate with the PostgreSQL service container
+          POSTGRES_HOST: localhost
+          # The default PostgreSQL port
+          POSTGRES_PORT: 5432
   
   # deployment:
   #   name: deployment
