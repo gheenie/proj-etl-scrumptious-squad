@@ -1,6 +1,6 @@
 from unittest.mock import patch, Mock
-from src.load import get_data, make_warehouse_connection, load_to_warehouse, load_lambda_handler, get_bucket_name
-from moto import mock_s3
+from src.load import get_data, make_warehouse_connection, load_to_warehouse, load_lambda_handler, get_bucket_name, pull_secrets
+from moto import mock_s3, mock_secretsmanager
 import pytest
 import boto3
 import os
@@ -27,6 +27,7 @@ def aws_credentials():
     os.environ["AWS_SECURITY_TOKEN"] = "testing"
     os.environ["AWS_SESSION_TOKEN"] = "testing"
     os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+
 
 
 @pytest.fixture(scope='function')
@@ -75,54 +76,74 @@ def test_get_data_dim_currency():
     dfs = get_data(bucket_prefix)
     pd.testing.assert_frame_equal(expectedfile, dfs["df_dim_currency"])
 
-
+@mock_secretsmanager
 def test_connection_to_warehouse():
-    connect = make_warehouse_connection()
-    assert isinstance(connect, pg8000.Connection)
+    secret_id = 'cred_DW'
+    user_id = 'dinunimmagadda'
+    password = 'Dinuece@7'
+    host = 'localhost'
+    port = 5432
+    database = 'test_warehouse'
+    schema = 'team_4'
+    secret = {
+        'user': user_id,
+        'password': password,
+        'database': database,
+        'host':host,
+        'port':port,
+        'schema':schema
+    }
+    secret_manager = boto3.client('secretsmanager')
+    secret_string = json.dumps(secret)
+    secret_manager.create_secret(Name=secret_id, SecretString=secret_string)
+    conn = make_warehouse_connection(secret_id)
+    assert isinstance(conn, pg8000.Connection)
 
 
-# @mock_s3
-# @patch('src.load.make_warehouse_connection')
-# def test_load_to_warehouse(mock_make_connection):
-#     conn = mock_make_connection
-#     bucket_name = "test_bucket_31"
-#     file_path = "data/parquet/"
-#     dotenv_path = './config/.env.test'
-#     s3 = boto3.resource('s3')
-#     s3.create_bucket(Bucket=bucket_name)
-#     s3.Object(bucket_name, f"{file_path}/dim_currency.parquet").put(
-#         Body=open('./load_test_db/dim_currency.parquet', 'rb'))
-#     dfs = get_data(bucket_name, file_path)
-#     result = load_to_warehouse(conn, dfs)
-#     assert result['body'] == 'Successfully loaded into data warehouse'
+@mock_s3
+@patch('src.load.make_warehouse_connection')
+def test_load_to_warehouse(mock_make_connection):
+    conn = mock_make_connection
+    bucket_prefix = 'test_bucket'
+    bucket_name = "test_bucket_31"
+    file_path = "data/parquet/"
+    # dotenv_path = './config/.env.test'
+    s3 = boto3.resource('s3')
+    s3.create_bucket(Bucket=bucket_name)
+    s3.Object(bucket_name, f"{file_path}/dim_currency.parquet").put(
+        Body=open('./load_test_db/dim_currency.parquet', 'rb'))
+    dfs = get_data(bucket_prefix)
+    result = load_to_warehouse(conn, dfs)
+    assert result['body'] == 'Successfully loaded into data warehouse'
 
 
-# @mock_s3
-# def test_load_lambda_handler():
-#     bucket_name = "test_bucket_31"
-#     file_path = "data/parquet/"
-#     dotenv_path = './config/.env.test'
-#     s3 = boto3.resource('s3')
-#     s3.create_bucket(Bucket=bucket_name)
-#     s3.Object(bucket_name, f"{file_path}/dim_currency.parquet").put(
-#         Body=open('./load_test_db/dim_currency.parquet', 'rb'))
-#     mock_cursor = Mock()
-#     mock_connection = Mock()
-#     mock_connection.cursor.return_value = mock_cursor
-#     with patch('src.load.make_warehouse_connection', return_value=mock_connection):
-#         result = load_lambda_handler(
-#             {'bucket_name': bucket_name, 'file_path': file_path, 'dotenv_path': dotenv_path}, None)
-#         assert 'Successfully loaded into data warehouse' in result['body']
+@mock_s3
+def test_load_lambda_handler():
+    bucket_prefix = 'test_bucket'
+    bucket_name = "test_bucket_31"
+    file_path = "data/parquet/"
+    s3 = boto3.resource('s3')
+    s3.create_bucket(Bucket=bucket_name)
+    s3.Object(bucket_name, f"{file_path}/dim_currency.parquet").put(
+        Body=open('./load_test_db/dim_currency.parquet', 'rb'))
+    mock_cursor = Mock()
+    mock_connection = Mock()
+    mock_connection.cursor.return_value = mock_cursor
+    with patch('src.load.make_warehouse_connection', return_value=mock_connection):
+        result = load_lambda_handler(
+            {'bucket_prefix': bucket_prefix, 'file_path': file_path, 'secret_id': 'cred_DW'}, None)
+        assert 'Successfully loaded into data warehouse' in result['body']
 
 
 # @mock_s3
 # def test_lambda_handler_logs_if_no_such_bucket(wrong_bucket_event, caplog):
 #     with caplog.at_level(logging.INFO):
-#         load_lambda_handler({'bucket_name': 'bucket_name', 'file_path': 'file_path', 'dotenv_path': 'dotenv_path'}, wrong_bucket_event)
+#         load_lambda_handler({'bucket_prefix': 'bucket_prefix', 'file_path': 'file_path', 'secret_id': 'cred_DW'}, wrong_bucket_event)
 #         assert 'No such bucket - bucket_name' in caplog.text
 
 
 # @mock_s3
 # def test_get_data_from_file_throws_client_error_if_invalid_call():
+#     bucket_prefix = 'test_bucket'
 #     with pytest.raises(ClientError):
-#         get_data('test_bucket', 'sample/test_file.txt')
+#         get_data('test_bucket')
