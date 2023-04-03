@@ -16,9 +16,7 @@ import logging
 logger = logging.getLogger('MyLogger')
 logger.setLevel(logging.INFO)
 
-def pull_secrets():
-    
-    secret_name = 'source_DB'     
+def pull_secrets(secret_name = 'source_DB'):
     secrets_manager = boto3.client('secretsmanager')
 
     try:               
