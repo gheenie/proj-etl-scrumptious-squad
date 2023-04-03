@@ -56,8 +56,10 @@ def test_pull_secrets_returns_correct_secrets(premock_secretsmanager):
     and checks the credentials it returns.
     """
 
+    # Uploads hardcoded test values to SecretsManager.
     entry_test_db()
 
+    # Retrieve secrets using the hardcoded identifier.
     user, password, database, host, port = pull_secrets('github_actions_DB')
 
     assert user == 'github_actions_user'
@@ -77,8 +79,10 @@ def test_make_connection_connects_to_seeded_db_and_get_titles_returns_correct_ta
     values even after calling load_env() again, unless the variables are explicitly popped.
     """
 
-    conn = make_connection('config/.env.test')        
+    # Connect to the local test totesys database.
+    conn = make_connection('config/.env.test')   
     dbcur = conn.cursor()
+    # Retrieve table names from the connected database.
     tables = get_titles(dbcur)
 
     expected = (
@@ -138,6 +142,7 @@ def test_get_file_info_in_bucket_and_check_table_in_bucket__0_existing_keys(mock
     which should return false.
     """
 
+    # Get full bucket name from a prefix.
     bucketname = get_bucket_name('scrumptious-squad-in-data-')
     tables = (
         ['address'],
@@ -153,9 +158,11 @@ def test_get_file_info_in_bucket_and_check_table_in_bucket__0_existing_keys(mock
         ['transaction']
     )
 
+    # Get the response JSON from listing an S3 bucket's contents.
     response = get_file_info_in_bucket(bucketname)
 
     for title in tables:
+        # Check if the table name is among the response JSON's files.
         assert check_table_in_bucket(title, response) == False
 
 
@@ -166,6 +173,7 @@ def test_get_file_info_in_bucket_and_check_table_in_bucket__some_keys_exist(mock
     Now the mocked bucket contains some files, so some table names should return True.
     """
 
+    # Get full bucket name from a prefix.
     bucketname = get_bucket_name('scrumptious-squad-in-data-')
     tables = (
         ['address'],
@@ -191,9 +199,11 @@ def test_get_file_info_in_bucket_and_check_table_in_bucket__some_keys_exist(mock
         Bucket='scrumptious-squad-in-data-testmock',
         Key='sales_order.parquet'
     )
+    # Get the response JSON from listing an S3 bucket's contents.
     response = get_file_info_in_bucket(bucketname)
 
     for title in tables:
+        # Check if the table name is among the response JSON's files.
         if title in [['design'], ['sales_order']]:          
             assert check_table_in_bucket(title, response) == True
         else:            
@@ -221,10 +231,13 @@ def test_get_table_and_check_each_table__no_files_exist_yet(mock_bucket):
         ['staff'],
         ['transaction']
     )
+    # Connect to the local test totesys database.
     conn = make_connection('config/.env.test')        
     dbcur = conn.cursor()
+    # Get full bucket name from a prefix.
     bucketname = get_bucket_name('scrumptious-squad-in-data-')
-   
+    
+    # Get the rows to be added to .parquet files for each table as DataFrames in a dict.
     to_be_added = check_each_table(tables, dbcur, bucketname)
     address_df = to_be_added[0]['address']
     design_df = to_be_added[4]['design']
@@ -271,17 +284,26 @@ def test_push_to_cloud_and_add_updates_correctly_uploads_parquets_to_s3__no_file
         ['staff'],
         ['transaction']
     )
+    # Connect to the local test totesys database.
     conn = make_connection('config/.env.test')        
     dbcur = conn.cursor()
+    # Get full bucket name from a prefix.
     bucketname = get_bucket_name('scrumptious-squad-in-data-')
+    # Get the rows to be added to .parquet files for each table as DataFrames in a dict.
     to_be_added = check_each_table(tables, dbcur, bucketname)
 
+    # .parquet file names are just the table name and the file extension
     prepared_parquet_filenames = [title[0] + '.parquet' for title in tables]
+    # Sort to make assertion easier.
     prepared_parquet_filenames.sort()
 
+    # Convert the rows to be added for each table from DataFrames to parquets
+    # and upload to an S3 bucket.
     add_updates(to_be_added, bucketname)
+    # Retrieve the names of the files that were just added.
     response = premock_s3.list_objects_v2(Bucket='scrumptious-squad-in-data-testmock')
     response_file_names = [content['Key'] for content in (response['Contents'])]
+    # Sort to make assertion easier.
     response_file_names.sort()
     
     assert response_file_names == prepared_parquet_filenames
@@ -296,10 +318,14 @@ def test_get_parquet_returns_the_correct_dataframe(mock_bucket, premock_s3):
     will only be called after checking that the tables exist in the bucket.
     """
 
+    # Execute extraction once with the seeded Totesys database.
     index('config/.env.test')
+    # Get full bucket name from a prefix.
     bucketname = get_bucket_name('scrumptious-squad-in-data-')
+    # Get the response JSON from listing an S3 bucket's contents.
     response = get_file_info_in_bucket(bucketname)
 
+    # Get the data from .parquets in an S3 bucket as DataFrames. 
     address_df = get_parquet('address', bucketname, response)
     design_df = get_parquet('design', bucketname, response)
     sales_order_df = get_parquet('sales_order', bucketname, response)
@@ -329,10 +355,15 @@ def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_last_
     Assert on one table only. The latest times happen to be in the last row.
     """
     
+    # Execute extraction once with the seeded Totesys database.
     index('config/.env.test')
+    # Get full bucket name from a prefix.
     bucketname = get_bucket_name('scrumptious-squad-in-data-')
+    # Get the response JSON from listing an S3 bucket's contents.
     response = get_file_info_in_bucket(bucketname)
 
+    # Get the latest timestamps for the 'created_at' and 'last_updated' columns
+    # from a .parquet file that represents a table.
     most_recent_times_sales_order = get_most_recent_time(['sales_order'], bucketname, response)
 
     assert most_recent_times_sales_order == {'created_at': pd.Timestamp(2023, 1, 1, 10), 'last_updated': pd.Timestamp(2023, 1, 1, 10)}
@@ -346,14 +377,15 @@ def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_not_l
     Now the latest times are not are not in the last row.
 
     This test requires patching because of the way import works - when src.extract is
-    imported to this test file, it is run once. Hence the seeded database in its default
+    imported to this test file, it is run once. Hence the seed Totesys database in its default
     state is used to interpret conn and dbcur for the rest of the logic in src.extract. 
-    The first lines of code in this test changes the seeded database's state, 
+    The first lines of code in this test changes the seed Totesys database's state, 
     but this is only happening after that first run. 
     To make src.extract use the new state, it needs to be patched, 
     unless the dbcur created in this test can be passed to the calls during ACT phase.
     """
 
+    # Insert new entries into the seed Totesys database.
     conn = make_connection('config/.env.test')
     dbcur = conn.cursor()
     query_string = '''INSERT INTO sales_order 
@@ -365,11 +397,17 @@ def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_not_l
                    '''   
     dbcur.execute(query_string)
 
+    # Patch connections in this and imported modules to use the updated seed Totesys database.
     mock_connection.return_value = conn
+    # Execute extraction once with the updated seed Totesys database.
     index('config/.env.test')
+    # Get full bucket name from a prefix.
     bucketname = get_bucket_name('scrumptious-squad-in-data-')
+    # Get the response JSON from listing an S3 bucket's contents.
     response = get_file_info_in_bucket(bucketname)
 
+    # Get the latest timestamps for the 'created_at' and 'last_updated' columns
+    # from a .parquet file that represents a table.
     most_recent_times_sales_order = get_most_recent_time(['sales_order'], bucketname, response)
 
     assert most_recent_times_sales_order == {'created_at': pd.Timestamp(2023, 2, 2, 11, 30), 'last_updated': pd.Timestamp(2023, 3, 3, 8, 45)}
@@ -386,10 +424,10 @@ def test_get_table_and_check_each_table__new_and_no_incoming_data__files_exist(m
     Currently only one table is updated in this test.
     """
     
-    # Execute extraction once with the default seeded database.
+    # Execute extraction once with the seeded Totesys database.
     index('config/.env.test')
 
-    # Insert new entries into the seeded database
+    # Insert new entries into the seed Totesys database.
     conn = make_connection('config/.env.test')        
     dbcur = conn.cursor()
     query_string = '''INSERT INTO sales_order 
@@ -414,9 +452,11 @@ def test_get_table_and_check_each_table__new_and_no_incoming_data__files_exist(m
         ['staff'],
         ['transaction']
     )
+    # Get full bucket name from a prefix.
     bucketname = get_bucket_name('scrumptious-squad-in-data-')
 
-    # dbcur is pointing to the updated seed database
+    # Get the rows to be added to .parquet files for each table as DataFrames in a dict.
+    # dbcur is pointing to the updated seed database.
     to_be_added = check_each_table(tables, dbcur, bucketname)
     
     # Only one table is updated in this test, so the index doesn't follow the tables variable
@@ -444,12 +484,14 @@ def test_push_to_cloud_and_add_updates__new_and_no_incoming_data__files_exist(mo
     Now both methods are called after one extraction.
 
     This test does inspect the content of the uploaded files.
+
+    Currently only one table is updated in this test.
     """
 
-    # Execute extraction once with the default seeded database.
+    # Execute extraction once with the default seed Totesys database.
     index('config/.env.test')
 
-    # Insert new entries into the seeded database
+    # Insert new entries into the seed Totesys database.
     conn = make_connection('config/.env.test')        
     dbcur = conn.cursor()
     query_string = '''INSERT INTO sales_order 
@@ -474,13 +516,19 @@ def test_push_to_cloud_and_add_updates__new_and_no_incoming_data__files_exist(mo
         ['staff'],
         ['transaction']
     )
+    # Get full bucket name from a prefix.
     bucketname = get_bucket_name('scrumptious-squad-in-data-')
-    # dbcur is pointing to the updated seed database
+    # Get the rows to be added to .parquet files for each table as DataFrames in a dict.
+    # dbcur is pointing to the updated seed database.
     to_be_added = check_each_table(tables, dbcur, bucketname)
 
+    # Convert the rows to be added for each table from DataFrames to parquets
+    # and upload to an S3 bucket.
     add_updates(to_be_added, bucketname)  
 
+    # Get the response JSON from listing an S3 bucket's contents.
     response = get_file_info_in_bucket(bucketname)
+    # Get the data from .parquets in an S3 bucket as DataFrames. 
     sales_order_df = get_parquet('sales_order', bucketname, response)
     
     # Test number of columns
