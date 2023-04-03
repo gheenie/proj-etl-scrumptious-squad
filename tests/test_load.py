@@ -135,15 +135,20 @@ def test_load_lambda_handler():
         assert 'Successfully loaded into data warehouse' in result['body']
 
 
-# @mock_s3
-# def test_lambda_handler_logs_if_no_such_bucket(wrong_bucket_event, caplog):
-#     with caplog.at_level(logging.INFO):
-#         load_lambda_handler({'bucket_prefix': 'bucket_prefix', 'file_path': 'file_path', 'secret_id': 'cred_DW'}, wrong_bucket_event)
-#         assert 'No such bucket - bucket_name' in caplog.text
+@mock_s3
+def test_load_lambda_handler_with_non_existing_bucket():
+    s3 = boto3.client('s3')
+    bucket_name = 'test-bucket'
+    s3.create_bucket(Bucket=bucket_name)
+    event = {
+        'bucket_prefix': 'test',
+        'file_path': 'data/parquet',
+        'secret_id': 'secret-id'
+    }
 
+    # Call the function with the event payload
+    with pytest.raises(ClientError) as e:
+        load_lambda_handler(event, None)
 
-# @mock_s3
-# def test_get_data_from_file_throws_client_error_if_invalid_call():
-#     bucket_prefix = 'test_bucket'
-#     with pytest.raises(ClientError):
-#         get_data('test_bucket')
+    # Ensure that the correct error message is returned
+    assert 'NoSuchBucket' in str(e.value)
