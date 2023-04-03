@@ -147,6 +147,11 @@ def test_fact_payment(mock_bucket_and_parquet_files):
     assert fact_payment['paid'][1] == True
     assert fact_payment['payment_date'][1] == '2023-01-01'
 
-
-
-
+def test_dim_transaction(mock_bucket_and_parquet_files):
+    df_transaction = get_parquet('transaction')
+    dim_transaction = create_dim_transaction(df_transaction)
+    assert dim_transaction.shape[1] == 4
+    assert dim_transaction['transaction_id'][1] == 2
+    assert dim_transaction['transaction_type'][3] == 'SALE'
+    assert dim_transaction['sales_order_id'][3] == 2
+    assert dim_transaction['purchase_order_id'][0] == 1

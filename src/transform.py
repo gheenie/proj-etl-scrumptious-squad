@@ -108,6 +108,13 @@ def create_dim_staff(df_staff, df_department):
     dim_staff.sort_values('staff_id', inplace=True)
     return dim_staff
 
+def create_dim_transaction(df_transaction):
+    dim_transaction = pd.DataFrame()
+    dim_transaction['transaction_id'] = df_transaction['transaction_id']
+    dim_transaction['transaction_type'] = df_transaction['transaction_type']
+    dim_transaction['sales_order_id'] = df_transaction['sales_order_id']
+    dim_transaction['purchase_order_id'] = df_transaction['purchase_order_id']
+    return dim_transaction
 
 def create_fact_sales_order(df_sales_order):
     fact_sales_order = pd.DataFrame() 
@@ -202,6 +209,7 @@ def transform():
     dim_staff = {'dim_staff' : create_dim_staff(df_staff, df_department)}
     fact_sales_order = {'fact_sales_order' : create_fact_sales_order(df_sales_order)}
     fact_purchase_order =  {'fact_purchase_order' : create_fact_purchase_order(df_purchase_order)}
+    fact_payment = {'fact_payment' : create_fact_payment(df_payment)}
 
     push_to_cloud(dim_date)
     push_to_cloud(dim_location)
@@ -211,6 +219,7 @@ def transform():
     push_to_cloud(dim_staff)
     push_to_cloud(fact_sales_order)
     push_to_cloud(fact_purchase_order)
+    push_to_cloud(fact_payment)
 
 # transform()
 
