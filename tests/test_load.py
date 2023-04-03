@@ -79,14 +79,14 @@ def test_get_data_dim_currency():
 @mock_secretsmanager
 def test_connection_to_warehouse():
     secret_id = 'cred_DW'
-    user_id = 'soyborg'
-    password = 'new_pass_gLOB3'
+    user = 'dinunimmagadda'
+    password = 'Dinuece@7'
     host = 'localhost'
     port = 5432
     database = 'test_warehouse'
     schema = 'team_4'
     secret = {
-        'user': user_id,
+        'user': user,
         'password': password,
         'database': database,
         'host':host,
@@ -133,17 +133,3 @@ def test_load_lambda_handler():
         result = load_lambda_handler(
             {'bucket_prefix': bucket_prefix, 'file_path': file_path, 'secret_id': 'cred_DW'}, None)
         assert 'Successfully loaded into data warehouse' in result['body']
-
-
-# @mock_s3
-# def test_lambda_handler_logs_if_no_such_bucket(wrong_bucket_event, caplog):
-#     with caplog.at_level(logging.INFO):
-#         load_lambda_handler({'bucket_prefix': 'bucket_prefix', 'file_path': 'file_path', 'secret_id': 'cred_DW'}, wrong_bucket_event)
-#         assert 'No such bucket - bucket_name' in caplog.text
-
-
-# @mock_s3
-# def test_get_data_from_file_throws_client_error_if_invalid_call():
-#     bucket_prefix = 'test_bucket'
-#     with pytest.raises(ClientError):
-#         get_data('test_bucket')
