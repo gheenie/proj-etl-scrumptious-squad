@@ -52,6 +52,7 @@ jobs:
       - name: Install dependencies and run checks
         # run: make all
         run: make dev-setup
+      - run: make run-checks
       # Run pytest itself instead of using make.
       - name: Activate virtual env
         run: source venv/bin/activate
