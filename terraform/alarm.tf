@@ -106,7 +106,6 @@ resource "aws_cloudwatch_metric_alarm" "data_integrity_alarm" {
   alarm_actions       = [aws_sns_topic.error_notification.arn]
 }
 
-
 # Monitor for Data Validation Failed appearing in log text during extraction.
 
 resource "aws_cloudwatch_log_metric_filter" "data_validation_metric_filter" {
@@ -134,6 +133,34 @@ resource "aws_cloudwatch_metric_alarm" "data_validation_alarm" {
   comparison_operator = "GreaterThanThreshold"
   threshold           = "0"
   alarm_description   = "Data validation failed"
+  alarm_actions       = [aws_sns_topic.error_notification.arn]
+}
+
+# Monitor for ERROR appearing in log text during extraction, which captures all errors.
+
+resource "aws_cloudwatch_log_metric_filter" "any_error_in_extraction_phase" {
+  log_group_name = aws_cloudwatch_log_group.extraction_group.name
+
+  name           = "any-extraction-error-filter"
+  pattern        = "ERROR"
+  
+  metric_transformation {
+    name      = "Error_Count"
+    namespace = "scrumptious-space"
+    value     = "1"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "any_error_in_extraction_phase_alarm" {
+  metric_name         = aws_cloudwatch_log_metric_filter.any_error_in_extraction_phase.metric_transformation[0].name
+  namespace           = aws_cloudwatch_log_metric_filter.any_error_in_extraction_phase.metric_transformation[0].namespace
+
+  alarm_name          = "error-in-extraction-phase-alarm"
+  evaluation_periods  = "1"
+  period              = "60"
+  statistic           = "Sum"
+  comparison_operator = "GreaterThanThreshold"
+  threshold           = "0"
   alarm_actions       = [aws_sns_topic.error_notification.arn]
 }
 
@@ -166,14 +193,43 @@ resource "aws_cloudwatch_metric_alarm" "transformation_error_alarm" {
   alarm_actions       = [aws_sns_topic.error_notification.arn]
 }
 
+# Monitor for ERROR appearing in log text during transformation, which captures all errors.
 
-# Monitor for Error appearing in log text during loading.
+resource "aws_cloudwatch_log_metric_filter" "any_error_in_transformation_phase" {
+  log_group_name = aws_cloudwatch_log_group.transformation_group.name
+
+  name           = "any-transformation-error-filter"
+  pattern        = "ERROR"
+  
+  metric_transformation {
+    name      = "Error_Count"
+    namespace = "scrumptious-space"
+    value     = "1"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "any_error_in_transformation_phase_alarm" {
+  metric_name         = aws_cloudwatch_log_metric_filter.any_error_in_transformation_phase.metric_transformation[0].name
+  namespace           = aws_cloudwatch_log_metric_filter.any_error_in_transformation_phase.metric_transformation[0].namespace
+
+  alarm_name          = "error-in-transformation-phase-alarm"
+  evaluation_periods  = "1"
+  period              = "60"
+  statistic           = "Sum"
+  comparison_operator = "GreaterThanThreshold"
+  threshold           = "0"
+  alarm_actions       = [aws_sns_topic.error_notification.arn]
+}
+
+
+# Monitor for ERROR appearing in log text during loading, which captures all errors.
 
 resource "aws_cloudwatch_log_metric_filter" "any_error_in_loading_phase" {
   log_group_name = aws_cloudwatch_log_group.loading_group.name
 
+  # Name should be any-loading-error-filter for consistency
   name           = "any-error-filter"
-  pattern        = "Error"
+  pattern        = "ERROR"
   
   metric_transformation {
     name      = "Error_Count"
