@@ -261,8 +261,8 @@ def index(dotenv_path_string):
 
 
 # Lambda handler
-def someting(event, context):
-    index('config/.env.development')
+def extract_lambda_handler(event={'dotenv_path_string': 'config/.env.development'}, context=None):
+    index(event['dotenv_path_string'])
     logger.info("Completed")
     print("done")
 
