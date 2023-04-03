@@ -127,4 +127,26 @@ def test_fact_purchase_order(mock_bucket_and_parquet_files):
     assert fact_purchase_order['agreed_delivery_location_id'][1] == 2
 
 
+def test_fact_payment(mock_bucket_and_parquet_files):
+    df_payment = get_parquet('payment')
+    fact_payment = create_fact_payment(df_payment)
+    assert fact_payment.shape[1] == 13
+    assert fact_payment['payment_record_id'][0] == 1
+    assert fact_payment['payment_record_id'][1] == 2
+    assert fact_payment['payment_id'][0] == 1
+    assert fact_payment['payment_id'][1] == 2
+    assert fact_payment['created_date'][0] == '2023-01-01'
+    assert fact_payment['created_time'][0] == '10:00:00'
+    assert fact_payment['last_updated_date'][0] == '2023-01-01'
+    assert fact_payment['last_updated_time'][0] == '10:00:00'
+    assert fact_payment['transaction_id'][1] == 2
+    assert fact_payment['counterparty_id'][1] == 2
+    assert fact_payment['payment_amount'][0] == 10.00
+    assert fact_payment['currency_id'][1] == 2
+    assert fact_payment['payment_type_id'][0] == 1
+    assert fact_payment['paid'][1] == True
+    assert fact_payment['payment_date'][1] == '2023-01-01'
+
+
+
 

@@ -145,7 +145,20 @@ def create_fact_purchase_order(df_purchase_order):
     return fact_purchase_order
 
 
-def create_
+def create_fact_payment(df_payment):
+    fact_payment = pd.DataFrame() 
+    fact_payment.insert(0, "payment_record_id", range(1, 1 + len(df_payment)))
+    fact_payment["payment_id"] = df_payment["payment_id"]
+    fact_payment[["created_date", "created_time"]] = df_payment["created_at"].apply(lambda x: pd.Series(str(x).split(" ")))
+    fact_payment[["last_updated_date", "last_updated_time"]] = df_payment["last_updated"].apply(lambda x: pd.Series(str(x).split(" ")))
+    fact_payment["transaction_id"] = df_payment["transaction_id"]
+    fact_payment["counterparty_id"] = df_payment["counterparty_id"]
+    fact_payment["payment_amount"] = df_payment["payment_amount"]
+    fact_payment["currency_id"] = df_payment["currency_id"]
+    fact_payment["payment_type_id"] = df_payment["payment_type_id"]
+    fact_payment["paid"] = df_payment["paid"]
+    fact_payment["payment_date"] = df_payment["payment_date"]
+    return fact_payment
 
 
 # Put the files into the "processed data" s3 bucket
