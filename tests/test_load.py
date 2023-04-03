@@ -79,8 +79,8 @@ def test_get_data_dim_currency():
 @mock_secretsmanager
 def test_connection_to_warehouse():
     secret_id = 'cred_DW'
-    user_id = 'dinunimmagadda'
-    password = 'Dinuece@7'
+    user_id = 'soyborg'
+    password = 'new_pass_gLOB3'
     host = 'localhost'
     port = 5432
     database = 'test_warehouse'
