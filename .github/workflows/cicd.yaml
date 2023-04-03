@@ -10,31 +10,31 @@ on:
 
 
 jobs:
-  psql:
-  name: Setup psql
-  runs-on: ubuntu-latest
-    steps:
-      # Downloads a copy of the code in your repository before running CI tests
-      - name: Check out repository code
-        uses: actions/checkout@v3
+  # psql:
+  # name: Setup psql
+  # runs-on: ubuntu-latest
+  #   steps:
+  #     # Downloads a copy of the code in your repository before running CI tests
+  #     - name: Check out repository code
+  #       uses: actions/checkout@v3
 
-      # Performs a clean installation of all dependencies in the `package.json` file
-      # For more information, see https://docs.npmjs.com/cli/ci.html
-      - name: Install dependencies
-        run: npm ci
+  #     # Performs a clean installation of all dependencies in the `package.json` file
+  #     # For more information, see https://docs.npmjs.com/cli/ci.html
+  #     - name: Install dependencies
+  #       run: npm ci
 
-      - name: Connect to PostgreSQL
-        # Runs a script that creates a PostgreSQL table, populates
-        # the table with data, and then retrieves the data
-        run: psql -f ./../load_test_warehouse_setup/test_warehouse_setup/setup_test_warehouse.sql
-        run: psql -f ./../extraction_test_db/test_db_setup/
-        # Environment variables used by the `client.js` script to create
-        # a new PostgreSQL table.
-        env:
-          # The hostname used to communicate with the PostgreSQL service container
-          POSTGRES_HOST: localhost
-          # The default PostgreSQL port
-          POSTGRES_PORT: 5432
+  #     - name: Connect to PostgreSQL
+  #       # Runs a script that creates a PostgreSQL table, populates
+  #       # the table with data, and then retrieves the data
+  #       run: psql -f ./../load_test_warehouse_setup/test_warehouse_setup/setup_test_warehouse.sql
+  #       run: psql -f ./../extraction_test_db/test_db_setup/
+  #       # Environment variables used by the `client.js` script to create
+  #       # a new PostgreSQL table.
+  #       env:
+  #         # The hostname used to communicate with the PostgreSQL service container
+  #         POSTGRES_HOST: localhost
+  #         # The default PostgreSQL port
+  #         POSTGRES_PORT: 5432
 
 
   run-tests:
@@ -49,45 +49,51 @@ jobs:
           python-version: '3.9'
       - name: Install Make
         run: sudo apt install make -y
+      - name: Install postgreSQL
+        run: sudo apt install postgresql postgresql-contrib -y
+      - name: Set psql password
+        run: export PGPASSWORD=gha_pw
+      - name: Create default psql user
+        run: sudo -u postgres createuser --superuser gha_user
       - name: Install dependencies and run checks
         # run: make all
         run: make dev-setup
   
-  deployment:
-    name: deployment
-    runs-on: ubuntu-latest
-    needs: run-tests
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v2
-      - name: Configure Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-          aws-region: us-east-1
-      - name: create tfstate bucket - Terraform Init
-        run: terraform init
-        working-directory: ./terraform/create_secrets_bucket
-      - name: create tfstate bucket - Terraform Apply
-        run: terraform apply -auto-approve
-        working-directory: ./terraform/create_secrets_bucket
-        # Will fail if bucket exists in your account OR in the internet.
-        # Ignore the error, if the existing bucket is not yours the later code will fail anyway.
-        continue-on-error: true
-      - name: main Terraform Init
-        run: terraform init
-        working-directory: ./terraform
-      - name: main Terraform Plan
-        id: plan
-        run: terraform plan
-        working-directory: ./terraform
-      - name: main Terraform Plan Status
-        if: steps.plan.outcome == 'failure'
-        run: exit 1
-        working-directory: ./terraform
-      - name: main Terraform Apply
-        run: terraform apply -auto-approve
-        working-directory: ./terraform
+  # deployment:
+  #   name: deployment
+  #   runs-on: ubuntu-latest
+  #   needs: run-tests
+  #   steps:
+  #     - name: Checkout Repo
+  #       uses: actions/checkout@v3
+  #     - name: Install Terraform
+  #       uses: hashicorp/setup-terraform@v2
+  #     - name: Configure Credentials
+  #       uses: aws-actions/configure-aws-credentials@v2
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+  #         aws-region: us-east-1
+  #     - name: create tfstate bucket - Terraform Init
+  #       run: terraform init
+  #       working-directory: ./terraform/create_secrets_bucket
+  #     - name: create tfstate bucket - Terraform Apply
+  #       run: terraform apply -auto-approve
+  #       working-directory: ./terraform/create_secrets_bucket
+  #       # Will fail if bucket exists in your account OR in the internet.
+  #       # Ignore the error, if the existing bucket is not yours the later code will fail anyway.
+  #       continue-on-error: true
+  #     - name: main Terraform Init
+  #       run: terraform init
+  #       working-directory: ./terraform
+  #     - name: main Terraform Plan
+  #       id: plan
+  #       run: terraform plan
+  #       working-directory: ./terraform
+  #     - name: main Terraform Plan Status
+  #       if: steps.plan.outcome == 'failure'
+  #       run: exit 1
+  #       working-directory: ./terraform
+  #     - name: main Terraform Apply
+  #       run: terraform apply -auto-approve
+  #       working-directory: ./terraform
