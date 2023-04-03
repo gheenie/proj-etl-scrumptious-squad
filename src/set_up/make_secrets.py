@@ -31,11 +31,11 @@ def get_inputs():
     dotenv_path = Path('config/.env.development')
     load_dotenv(dotenv_path=dotenv_path)
 
-    database = os.getenv('database')
-    user = os.getenv('user')
-    password = os.getenv('password')
-    host = os.getenv('host')
-    port = os.getenv('port')
+    user = os.environ['user']
+    password = os.environ['password']
+    database = os.environ['database']
+    host = os.environ['host']
+    port = os.environ['port']
 
     # Define the secret to be stored
     secret = {
@@ -94,6 +94,27 @@ def entry_warehouse():
 # print(entry_warehouse())
 
 
+def get_inputs_for_test_db():
+    dotenv_path = Path('config/.env.test')
+    load_dotenv(dotenv_path=dotenv_path)
+
+    user = os.environ['user']
+    password = os.environ['password']
+    database = os.environ['database']
+
+    secret_identifier = 'test_DB'
+
+    # Define the secret to be stored
+    secret = {
+        'user': user,
+        'password': password,
+        'database': database,
+    }
+    
+    return secret, secret_identifier
 
 
+def entry_test_db():
+    secret, secret_id = get_inputs_for_test_db()    
 
+    return create_secret(secret, secret_id)  
