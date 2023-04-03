@@ -7,7 +7,7 @@ on:
   # push:
   #   branches:
   #     - main
-
+  push:
 
 jobs:
   # psql:
@@ -35,7 +35,6 @@ jobs:
   #         POSTGRES_HOST: localhost
   #         # The default PostgreSQL port
   #         POSTGRES_PORT: 5432
-
 
   run-tests:
     name: Setup environment and run tests
