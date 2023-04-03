@@ -12,12 +12,11 @@ from botocore.exceptions import ClientError
 logger = logging.getLogger('MyLogger')
 logger.setLevel(logging.INFO)
 
-def pull_secrets():
-    secret_name = 'cred_DW'     
+def pull_secrets(secret_id):     
     secrets_manager = boto3.client('secretsmanager')
 
     try:               
-        response = secrets_manager.get_secret_value(SecretId=secret_name)  
+        response = secrets_manager.get_secret_value(SecretId=secret_id)  
 
     except ClientError as e:            
         error_code = e.response['Error']['Code']
@@ -30,14 +29,14 @@ def pull_secrets():
     else:
         secrets = json.loads(response['SecretString'])
         details = {
-        'user': secrets['user'][0],
-        'password': secrets['password'][0],
-        'database': secrets['database'][0],
-        'host':secrets['host'][0],
+        'user': secrets['user'],
+        'password': secrets['password'],
+        'database': secrets['database'],
+        'host':secrets['host'],
         'port':secrets['port'],
         'schema': secrets['schema']
         }
-        return details['user'], details['password'], details['database'], details['host'], details['port'], details['schema']
+        return details
 
 
 def get_bucket_name(bucket_prefix):
@@ -69,13 +68,13 @@ def get_data(bucket_prefix):
         dfs[f"df_{filename}"] = df
     return dfs
 
-def make_warehouse_connection():
+def make_warehouse_connection(secret_id):
     try:
-        details = pull_secrets()
+        details = pull_secrets(secret_id)
         API_HOST = details['host']
         API_USER = details['user']
-        API_PASS = details["password"]
-        API_DBASE = details["database"]
+        API_PASS = details['password']
+        API_DBASE = details['database']
         conn = pg8000.connect(
             host=API_HOST,
             user=API_USER,
@@ -108,13 +107,15 @@ def load_to_warehouse(conn, dfs):
 
 
 def load_lambda_handler(event, context):
-    bucket_name = event['bucket_name']
+    bucket_prefix = event['bucket_prefix']
     file_path = event['file_path']
-    dotenv_path = event['dotenv_path']
+    secret_id = event['secret_id']
+    bucket_name = get_bucket_name(bucket_prefix)
+    # dotenv_path = event['dotenv_path']
 
     try:
-        dfs = get_data()
-        conn = make_warehouse_connection()
+        dfs = get_data(bucket_prefix)
+        conn = make_warehouse_connection(secret_id)
         if conn is None:
             return {
                 'statusCode': 500,
