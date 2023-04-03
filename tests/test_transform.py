@@ -86,26 +86,45 @@ def test_dim_staff(mock_bucket_and_parquet_files):
     assert dim_staff['department_name'][1] == 'dept-b'
     assert dim_staff['email_address'][0] == 'fna.lna@terrifictotes.com'
 
-def test_fact_sales_order_table(mock_bucket_and_parquet_files):
+def test_fact_sales_order(mock_bucket_and_parquet_files):
     df_sales_order = get_parquet('sales_order')
-    sales_order_table = create_facts_sales_order_table(df_sales_order)
-    assert sales_order_table.shape[1] == 15
-    assert sales_order_table['sales_record_id'][0] == 1
-    assert sales_order_table['sales_record_id'][1] == 2
-    assert sales_order_table['sales_order_id'][0] == 1
-    assert sales_order_table['sales_order_id'][1] == 2
-    assert sales_order_table['created_date'][0] == '2023-01-01'
-    assert sales_order_table['created_time'][0] == '10:00:00'
-    assert sales_order_table['last_updated_date'][0] == '2023-01-01'
-    assert sales_order_table['last_updated_time'][0] == '10:00:00'
-    assert sales_order_table['sales_staff_id'][1] == 2
-    assert sales_order_table['counterparty_id'][1] == 2
-    assert sales_order_table['units_sold'][0] == 10
-    assert sales_order_table['unit_price'][1] == 2.00
-    assert sales_order_table['agreed_delivery_date'][0] == '2023-01-01'
-    assert sales_order_table['agreed_delivery_location_id'][4] == 5
+    fact_sales_order = create_fact_sales_order(df_sales_order)
+    assert fact_sales_order.shape[1] == 15
+    assert fact_sales_order['sales_record_id'][0] == 1
+    assert fact_sales_order['sales_record_id'][1] == 2
+    assert fact_sales_order['sales_order_id'][0] == 1
+    assert fact_sales_order['sales_order_id'][1] == 2
+    assert fact_sales_order['created_date'][0] == '2023-01-01'
+    assert fact_sales_order['created_time'][0] == '10:00:00'
+    assert fact_sales_order['last_updated_date'][0] == '2023-01-01'
+    assert fact_sales_order['last_updated_time'][0] == '10:00:00'
+    assert fact_sales_order['sales_staff_id'][1] == 2
+    assert fact_sales_order['counterparty_id'][1] == 2
+    assert fact_sales_order['units_sold'][0] == 10
+    assert fact_sales_order['unit_price'][1] == 2.00
+    assert fact_sales_order['agreed_delivery_date'][0] == '2023-01-01'
+    assert fact_sales_order['agreed_delivery_location_id'][4] == 5
 
 
+def test_fact_purchase_order(mock_bucket_and_parquet_files):
+    df_purchase_order = get_parquet('purchase_order')
+    fact_purchase_order = create_fact_purchase_order(df_purchase_order)
+    assert fact_purchase_order.shape[1] == 15
+    assert fact_purchase_order['purchase_record_id'][0] == 1
+    assert fact_purchase_order['purchase_record_id'][1] == 2
+    assert fact_purchase_order['purchase_order_id'][0] == 1
+    assert fact_purchase_order['purchase_order_id'][1] == 2
+    assert fact_purchase_order['created_date'][0] == '2023-01-01'
+    assert fact_purchase_order['created_time'][0] == '10:00:00'
+    assert fact_purchase_order['last_updated_date'][0] == '2023-01-01'
+    assert fact_purchase_order['last_updated_time'][0] == '10:00:00'
+    assert fact_purchase_order['staff_id'][1] == 2
+    assert fact_purchase_order['counterparty_id'][1] == 2
+    assert fact_purchase_order['item_code'][0] == 'AAAAAAA'
+    assert fact_purchase_order['item_quantity'][0] == 1
+    assert fact_purchase_order['item_unit_price'][4] == 10.00
+    assert fact_purchase_order['agreed_delivery_date'][0] == '2023-01-01'
+    assert fact_purchase_order['agreed_delivery_location_id'][1] == 2
 
 
 
