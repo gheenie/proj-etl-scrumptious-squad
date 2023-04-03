@@ -1,8 +1,11 @@
-from dotenv import load_dotenv
-import os
+"""
+lambda function for loading the parquet files
+Data warehouse
+"""
+
+
 import pg8000
 import boto3
-from pathlib import Path
 import pyarrow.parquet as pq
 import io
 import logging

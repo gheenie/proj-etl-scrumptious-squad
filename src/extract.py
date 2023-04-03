@@ -34,7 +34,7 @@ we will fill it in later
 
         print(error_code)
         if error_code == 'ResourceNotFoundException':
-            raise Exception(f'ERROR: name not found')
+            raise Exception(f'ERROR: name not found') from error
         else:
             raise Exception(f'ERROR : {error_code}')
     else:
