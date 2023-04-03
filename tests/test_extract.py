@@ -1,4 +1,7 @@
 """
+Most of the tests on the seeded data are currently for very happy paths. Only
+one or two tables are tested in the assertions.
+
 To form your assertion statements, you need to refer to the
 seeded data in extraction-test-db/setup-test-db.txt
 """
@@ -17,7 +20,7 @@ from src.extract import (
     get_most_recent_time,
     get_file_info_in_bucket
 )
-from src.set_up.make_secrets import (entry)
+from src.set_up.make_secrets import (entry_test_db)
 import pandas as pd
 import pytest
 import os
@@ -45,20 +48,14 @@ def premock_secretsmanager(aws_credentials):
 
 
 def test_pull_secrets_returns_correct_secrets(premock_secretsmanager):
-    entry()
-    user, password, database, host, port = pull_secrets()
+    entry_test_db()
+    user, password, database, host, port = pull_secrets('github_actions_DB')
 
-    assert user == os.environ['user']
-    assert password == os.environ['password']
-    assert database == os.environ['database']
-    assert host == os.environ['host']
-    assert port == os.environ['port']
-
-    os.environ.pop('user', None)
-    os.environ.pop('password', None)
-    os.environ.pop('database', None)
-    os.environ.pop('host', None)
-    os.environ.pop('port', None)
+    assert user == 'github_actions_user'
+    assert password == 'github_actions_password'
+    assert database == 'github_actions_database'
+    assert host == 'localhost'
+    assert port == '5432'
 
 
 def test_make_connection_connects_to_seeded_db_and_get_titles_returns_correct_table_names():
