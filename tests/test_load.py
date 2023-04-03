@@ -79,12 +79,12 @@ def test_get_data_dim_currency():
 @mock_secretsmanager
 def test_connection_to_warehouse():
     secret_id = 'cred_DW'
-    host='nc-data-eng-project-dw-prod.chpsczt8h1nu.eu-west-2.rds.amazonaws.com'
-    port=5432
-    user='project_team_4'
-    password='9Fy8qy8VsqTjuN'
-    database='postgres'
-    schema='project_team_4'
+    user = 'dinunimmagadda'
+    password = 'Dinuece@7'
+    host = 'localhost'
+    port = 5432
+    database = 'test_warehouse'
+    schema = 'team_4'
     secret = {
         'user': user,
         'password': password,
