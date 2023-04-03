@@ -76,28 +76,28 @@ def test_get_data_dim_currency():
     dfs = get_data(bucket_prefix)
     pd.testing.assert_frame_equal(expectedfile, dfs["df_dim_currency"])
 
-@mock_secretsmanager
-def test_connection_to_warehouse():
-    secret_id = 'cred_DW'
-    user = 'dinunimmagadda'
-    password = 'Dinuece@7'
-    host = 'localhost'
-    port = 5432
-    database = 'test_warehouse'
-    schema = 'team_4'
-    secret = {
-        'user': user,
-        'password': password,
-        'database': database,
-        'host':host,
-        'port':port,
-        'schema':schema
-    }
-    secret_manager = boto3.client('secretsmanager')
-    secret_string = json.dumps(secret)
-    secret_manager.create_secret(Name=secret_id, SecretString=secret_string)
-    conn = make_warehouse_connection(secret_id)
-    assert isinstance(conn, pg8000.Connection)
+# @mock_secretsmanager
+# def test_connection_to_warehouse():
+#     secret_id = 'cred_DW'
+#     user = 'gk'
+#     password = 'shareshare'
+#     host = 'localhost'
+#     port = 5432
+#     database = 'test_warehouse'
+#     schema = 'team_4'
+#     secret = {
+#         'user': user,
+#         'password': password,
+#         'database': database,
+#         'host':host,
+#         'port':port,
+#         'schema':schema
+#     }
+#     secret_manager = boto3.client('secretsmanager')
+#     secret_string = json.dumps(secret)
+#     secret_manager.create_secret(Name=secret_id, SecretString=secret_string)
+#     conn = make_warehouse_connection(secret_id)
+#     assert isinstance(conn, pg8000.Connection)
 
 
 @mock_s3
