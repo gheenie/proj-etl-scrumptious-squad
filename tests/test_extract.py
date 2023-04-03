@@ -48,11 +48,17 @@ def test_pull_secrets_returns_correct_secrets(premock_secretsmanager):
     entry()
     user, password, database, host, port = pull_secrets()
 
-    assert user == 'project_user_4'
-    assert password == 'LC7zJxE3BfvY7p'
-    assert database == 'totesys'
-    assert host == 'nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com'
-    assert port == 5432
+    assert user == os.environ['user']
+    assert password == os.environ['password']
+    assert database == os.environ['database']
+    assert host == os.environ['host']
+    assert port == os.environ['port']
+
+    os.environ.pop('user', None)
+    os.environ.pop('password', None)
+    os.environ.pop('database', None)
+    os.environ.pop('host', None)
+    os.environ.pop('port', None)
 
 
 def test_make_connection_connects_to_seeded_db_and_get_titles_returns_correct_table_names():
