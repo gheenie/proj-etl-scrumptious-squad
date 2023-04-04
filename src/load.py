@@ -1,72 +1,66 @@
-from dotenv import load_dotenv
-import os
 import pg8000
 import boto3
-from pathlib import Path
 import pyarrow.parquet as pq
 import io
-import logging
 import json
 from botocore.exceptions import ClientError
 
-logger = logging.getLogger('MyLogger')
-logger.setLevel(logging.INFO)
-
-def pull_secrets(secret_id):     
-    secrets_manager = boto3.client('secretsmanager')
-
-    try:               
-        response = secrets_manager.get_secret_value(SecretId=secret_id)  
-
-    except ClientError as e:            
-        error_code = e.response['Error']['Code']
-
-        print(error_code)
-        if error_code == 'ResourceNotFoundException':            
-            raise Exception(f'ERROR: name not found') 
-        else:           
-            raise Exception(f'ERROR : {error_code}')
-    else:
-        secrets = json.loads(response['SecretString'])
-        details = {
-        'user': secrets['user'],
-        'password': secrets['password'],
-        'database': secrets['database'],
-        'host':secrets['host'],
-        'port':secrets['port'],
-        'schema': secrets['schema']
-        }
-        return details
-
+def pull_secrets(secret_id):
+    secret_manager = boto3.client("secretsmanager")
+    try:
+        response = secret_manager.describe_secret(SecretId=secret_id)
+    except ClientError as e:
+        if e.response['Error']['Code'] == 'ResourceNotFoundException':
+            raise ValueError(f"Secret with {secret_id} does not exist")
+        else:
+            raise e
+    response = secret_manager.get_secret_value(SecretId=secret_id)
+    secret_text = json.loads(response["SecretString"])
+    return secret_text
 
 def get_bucket_name(bucket_prefix):
+    """
+    Returns the name of the first S3 bucket that matches the given prefix.
+    Returns None if no matching bucket is found or an error occurs.
+    """
     try:
         s3 = boto3.client('s3')
         response = s3.list_buckets()
-        for bucket in response['Buckets']:
+
+        for bucket in response.get('Buckets', []):
             if bucket['Name'].startswith(bucket_prefix):
                 return bucket['Name']
-    except Exception as e:
+    except ClientError as e:
         print(f"An error occurred: {e}")
-        return None
+
+    return None
 
 
 def get_data(bucket_prefix):
-    bucket_name = get_bucket_name(bucket_prefix)
-    file_path = 'data/parquet'
-    s3 = boto3.client('s3')
-    objects = s3.list_objects_v2(
-        Bucket=bucket_name, Prefix=file_path)['Contents']
-    dfs = {}
-    for obj in objects:
-        key = obj['Key']
-        filename = key.split('/')[-1].split('.')[0]
-        obj = s3.get_object(Bucket=bucket_name, Key=key)
-        buffer = io.BytesIO(obj['Body'].read())
-        table = pq.read_table(buffer)
-        df = table.to_pandas()
-        dfs[f"df_{filename}"] = df
-    return dfs
+    try:
+        s3 = boto3.client('s3')
+        bucket_name = get_bucket_name(bucket_prefix)
+
+        if not bucket_name:
+            return []
+        file_path = 'data/parquet'
+        s3 = boto3.client('s3')
+        objects = s3.list_objects_v2(
+            Bucket=bucket_name, Prefix= file_path)['Contents']
+        dfs = {}
+        for obj in objects:
+            key = obj['Key']
+            filename = key.split('/')[-1].split('.')[0]
+            obj = s3.get_object(Bucket=bucket_name, Key=key)
+            buffer = io.BytesIO(obj['Body'].read())
+            table = pq.read_table(buffer)
+            df = table.to_pandas()
+            dfs[f"df_{filename}"] = df
+        return dfs
+
+    except ClientError as e:
+        print(f"An error occurred: {e}")
+        return []
 
 def make_warehouse_connection(secret_id):
     try:
@@ -85,55 +79,70 @@ def make_warehouse_connection(secret_id):
     except Exception as e:
         print(f"Error connecting to the data warehouse: {str(e)}")
         return None
+    
 
-
-def load_to_warehouse(conn, dfs):
-    cur = conn.cursor()
-    for table in dfs:
-        table_name = table[3:]
-        print(f"Loading table {table_name}")
-        for index, row in dfs[table].iterrows():
-            values = ', '.join(['%s'] * len(row))
-            columns = ', '.join(row.index)
-            sql = f"INSERT INTO {table_name} ({columns}) VALUES ({values})"
-            cur.execute(sql, tuple(row))
-    conn.commit()
-    cur.close()
-    conn.close()
-    return {
-        'statusCode': 200,
-        'body': 'Successfully loaded into data warehouse'
-    }
-
-
-def load_lambda_handler(event, context):
-    bucket_prefix = event['bucket_prefix']
-    file_path = event['file_path']
-    secret_id = event['secret_id']
-    bucket_name = get_bucket_name(bucket_prefix)
-    # dotenv_path = event['dotenv_path']
-
+def load_data_to_warehouse(secret_id, bucket_prefix):
     try:
-        dfs = get_data(bucket_prefix)
         conn = make_warehouse_connection(secret_id)
-        if conn is None:
+        if not conn:
+            return False
+        
+        dfs = get_data(bucket_prefix)
+        if not dfs:
+            return False
+        
+        with conn.cursor() as cursor:
+            for table in dfs:
+                table_name = table[3:]
+                print(f"Loading table {table_name}")
+                for row in dfs[table].itertuples(index=False):
+                    values = ', '.join(['%s'] * len(row))
+                    columns = ', '.join(row._fields)
+                    sql = f"INSERT INTO {table_name} ({columns}) VALUES ({values})"
+                    cursor.execute(sql, row)
+                    conn.commit()
+                print(f"Data loaded into table {table_name}")
+                
+        cursor.close()
+        conn.close()
+        return {
+            'statusCode': 200,
+            'body': 'Successfully loaded into data warehouse'
+        }
+        
+    except Exception as e:
+        print(f"Error loading data into the data warehouse: {str(e)}")
+        return False
+
+
+def lambda_handler(event, context):
+    try:
+        # Retrieve the secret ID and bucket prefix from the event
+        secret_id = event.get('secret_id')
+        bucket_prefix = event.get('bucket_prefix')
+        
+        # Load data from S3 bucket
+        data = get_data(bucket_prefix)
+        if not data:
             return {
-                'statusCode': 500,
-                'body': 'Error: Unable to connect to the data warehouse'
+                'statusCode': 400,
+                'body': 'Error: Failed to load data from S3 bucket'
             }
-        logger.info(f'Bucket is {bucket_name}')
-        return load_to_warehouse(conn=conn,dfs=dfs)
-    except pg8000.core.DatabaseError as e:
-        print(f"Error Database does not exist: {str(e)}")
+        
+        result = load_data_to_warehouse(secret_id, data)
+        if not result:
+            return {
+                'statusCode': 400,
+                'body': 'Error: Failed to load data into warehouse'
+            }
+
+        return {
+            'statusCode': 200,
+            'body': 'Data loaded into warehouse successfully'
+        }
+
+    except Exception as e:
         return {
             'statusCode': 500,
-            'body': f'Error loading data to the warehouse: {str(e)}'
+            'body': f"Error: {str(e)}"
         }
-    except ClientError as c:
-        if c.response['Error']['Code'] == 'NoSuchBucket':
-            logger.error(f'No such bucket - {bucket_name}')
-        else:
-            raise
-    except Exception as e:
-        logger.error(e)
-        raise RuntimeError
