@@ -293,7 +293,7 @@ def index(dotenv_path_string):
 
 
 # Lambda handler
-def extract_lambda_handler(event, context):
+def extract_lambda_handler(event, context=None):
     """
     Fully integrated all subfunctions
     """
