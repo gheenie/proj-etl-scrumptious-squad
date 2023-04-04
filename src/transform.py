@@ -124,14 +124,14 @@ def create_dim_payment_type(df_payment_type):
 
 def create_fact_sales_order(df_sales_order):
     fact_sales_order = pd.DataFrame() 
-    fact_sales_order.insert(0, "sales_record_id", range(1, 1 + len(df_sales_order)))
+    # fact_sales_order.insert(0, "sales_record_id", range(1, 1 + len(df_sales_order)))
     fact_sales_order["sales_order_id"] = df_sales_order["sales_order_id"]
     fact_sales_order[["created_date", "created_time"]] = df_sales_order["created_at"].apply(lambda x: pd.Series(str(x).split(" ")))
     fact_sales_order[["last_updated_date", "last_updated_time"]] = df_sales_order["last_updated"].apply(lambda x: pd.Series(str(x).split(" ")))
     fact_sales_order["sales_staff_id"] = df_sales_order["staff_id"]
     fact_sales_order["counterparty_id"] = df_sales_order["counterparty_id"]
     fact_sales_order["units_sold"] = df_sales_order["units_sold"]
-    fact_sales_order["unit_price"] = df_sales_order["unit_price"]
+    fact_sales_order["unit price"] = df_sales_order["unit_price"]
     fact_sales_order["currency_id"] = df_sales_order["currency_id"]
     fact_sales_order["design_id"] = df_sales_order["design_id"]
     fact_sales_order["agreed_payment_date"] = df_sales_order["agreed_payment_date"]
@@ -140,30 +140,30 @@ def create_fact_sales_order(df_sales_order):
     return fact_sales_order
 
 
-def create_fact_purchase_order(df_purchase_order):
-    fact_purchase_order = pd.DataFrame() 
-    fact_purchase_order.insert(0, "purchase_record_id", range(1, 1 + len(df_purchase_order)))
-    fact_purchase_order["purchase_order_id"] = df_purchase_order["purchase_order_id"]
-    fact_purchase_order[["created_date", "created_time"]] = df_purchase_order["created_at"].apply(lambda x: pd.Series(str(x).split(" ")))
-    fact_purchase_order[["last_updated_date", "last_updated_time"]] = df_purchase_order["last_updated"].apply(lambda x: pd.Series(str(x).split(" ")))
-    fact_purchase_order["staff_id"] = df_purchase_order["staff_id"]
-    fact_purchase_order["counterparty_id"] = df_purchase_order["counterparty_id"]
-    fact_purchase_order["item_code"] = df_purchase_order["item_code"]
-    fact_purchase_order["item_quantity"] = df_purchase_order["item_quantity"]
-    fact_purchase_order["item_unit_price"] = df_purchase_order["item_unit_price"]
-    fact_purchase_order["currency_id"] = df_purchase_order["currency_id"]
-    fact_purchase_order["agreed_delivery_date"] = df_purchase_order["agreed_delivery_date"]
-    fact_purchase_order["agreed_payment_date"] = df_purchase_order["agreed_payment_date"]
-    fact_purchase_order["agreed_delivery_location_id"] = df_purchase_order["agreed_delivery_location_id"]
-    return fact_purchase_order
+def create_fact_purchase_orders(df_purchase_order):
+    fact_purchase_orders = pd.DataFrame() 
+    # fact_purchase_orders.insert(0, "purchase_record_id", range(1, 1 + len(df_purchase_order)))
+    fact_purchase_orders["purchase_order_id"] = df_purchase_order["purchase_order_id"]
+    fact_purchase_orders[["created_date", "created_time"]] = df_purchase_order["created_at"].apply(lambda x: pd.Series(str(x).split(" ")))
+    fact_purchase_orders[["last_updated_date", "last_updated_time"]] = df_purchase_order["last_updated"].apply(lambda x: pd.Series(str(x).split(" ")))
+    fact_purchase_orders["staff_id"] = df_purchase_order["staff_id"]
+    fact_purchase_orders["counterparty_id"] = df_purchase_order["counterparty_id"]
+    fact_purchase_orders["item_code"] = df_purchase_order["item_code"]
+    fact_purchase_orders["item_quantity"] = df_purchase_order["item_quantity"]
+    fact_purchase_orders["item_unit_price"] = df_purchase_order["item_unit_price"]
+    fact_purchase_orders["currency_id"] = df_purchase_order["currency_id"]
+    fact_purchase_orders["agreed_delivery_date"] = df_purchase_order["agreed_delivery_date"]
+    fact_purchase_orders["agreed_payment_date"] = df_purchase_order["agreed_payment_date"]
+    fact_purchase_orders["agreed_delivery_location_id"] = df_purchase_order["agreed_delivery_location_id"]
+    return fact_purchase_orders
 
 
 def create_fact_payment(df_payment):
     fact_payment = pd.DataFrame() 
-    fact_payment.insert(0, "payment_record_id", range(1, 1 + len(df_payment)))
+    # fact_payment.insert(0, "payment_record_id", range(1, 1 + len(df_payment)))
     fact_payment["payment_id"] = df_payment["payment_id"]
     fact_payment[["created_date", "created_time"]] = df_payment["created_at"].apply(lambda x: pd.Series(str(x).split(" ")))
-    fact_payment[["last_updated_date", "last_updated_time"]] = df_payment["last_updated"].apply(lambda x: pd.Series(str(x).split(" ")))
+    fact_payment[["last_updated_date", "last_updated"]] = df_payment["last_updated"].apply(lambda x: pd.Series(str(x).split(" ")))
     fact_payment["transaction_id"] = df_payment["transaction_id"]
     fact_payment["counterparty_id"] = df_payment["counterparty_id"]
     fact_payment["payment_amount"] = df_payment["payment_amount"]
@@ -207,7 +207,7 @@ def transform():
     df_transaction = get_parquet('transaction')
 
     # Converts dataframes to dictionaries
-    dim_date = {'dim_date': create_dim_date('2022-01-01', '2050-01-01')}
+    dim_date = {'dim_date': create_dim_date('2022-01-01', '2024-01-01')}
     dim_location = {'dim_location' : create_dim_location(df_address)}
     dim_design = {'dim_design' : create_dim_design(df_design)}
     dim_currency = {'dim_currency' : create_dim_currency(df_currency)}
@@ -216,7 +216,7 @@ def transform():
     dim_transaction = {'dim_transaction' : create_dim_transaction(df_transaction)}
     dim_payment_type = {'dim_payment_type' : create_dim_payment_type(df_payment_type)}
     fact_sales_order = {'fact_sales_order' : create_fact_sales_order(df_sales_order)}
-    fact_purchase_order =  {'fact_purchase_order' : create_fact_purchase_order(df_purchase_order)}
+    fact_purchase_orders =  {'fact_purchase_orders' : create_fact_purchase_orders(df_purchase_order)}
     fact_payment = {'fact_payment' : create_fact_payment(df_payment)}
 
     push_to_cloud(dim_date)
@@ -228,7 +228,7 @@ def transform():
     push_to_cloud(dim_transaction)
     push_to_cloud(dim_payment_type)
     push_to_cloud(fact_sales_order)
-    push_to_cloud(fact_purchase_order)
+    push_to_cloud(fact_purchase_orders)
     push_to_cloud(fact_payment)
 
 # transform()
