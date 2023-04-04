@@ -80,6 +80,7 @@ def make_warehouse_connection(secret_id):
     
 
 from sqlalchemy import create_engine
+import psycopg2
 def load_data_to_warehouse(secret_id, bucket_prefix):
     try:
         # conn = make_warehouse_connection(secret_id)
@@ -104,7 +105,39 @@ def load_data_to_warehouse(secret_id, bucket_prefix):
             print(f"Loading table {table_name}")
             table_as_dataframe = dfs[table]
             table_as_dataframe.to_sql(table_name, con=conn, if_exists='append', index=False)
-        
+
+        conn = psycopg2.connect(conn_string)
+        conn.autocommit = True
+
+        # with conn.cursor() as cursor:
+        #     for table_name, df in dfs.items():
+        #         print(f"Loading table {table_name}")
+        #         cursor.execute(f"SELECT * FROM {table_name}")
+        #         existing_rows = cursor.fetchall()
+
+        #         # If there are no existing rows, just insert everything
+        #         if len(existing_rows) == 0:
+        #             df.to_sql(name=table_name, con=conn, if_exists='append', index=False)
+        #             print(f"Data loaded into table {table_name}")
+        #             continue
+
+        #         # If there are existing rows, update them
+        #         # First, we need to find the primary key column name
+        #         cursor.execute(f"SELECT a.attname FROM pg_index i JOIN pg_attribute a ON a.attrelid = i.indrelid AND a.attnum = ANY(i.indkey) WHERE i.indrelid = '{table_name}'::regclass AND i.indisprimary;")
+        #         primary_key_column_name = cursor.fetchone()[0]
+
+        #         # Then, we can iterate through the rows and update them
+        #         for row in df.itertuples(index=False):
+        #             row_dict = dict(row)
+        #             primary_key_value = row_dict.pop(primary_key_column_name)
+        #             update_clause = ', '.join([f"{key} = %s" for key in row_dict.keys()])
+        #             update_values = tuple(row_dict.values()) + (primary_key_value, )
+        #             cursor.execute(f"UPDATE {table_name} SET {update_clause} WHERE {primary_key_column_name} = %s", update_values)
+        #             print(f"Data updated in table {table_name} for primary key value {primary_key_value}")
+
+        #         conn.commit()
+        #         print(f"Data loaded into table {table_name}")
+
         # with conn.cursor() as cursor:
         #     for table in dfs:
         #         table_name = table[3:]
