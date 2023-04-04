@@ -62,7 +62,7 @@ jobs:
         # run: make all
         run: make dev-setup
       # Setup postgreSQL
-      - run: touch .pgpass && echo 'localhost:5432:*:*:postgres' >> .pgpass && chmod 0600 .pgpass
+      - run: touch .pgpass && echo 'localhost:5432:*:postgres:postgres' >> .pgpass && chmod 0600 .pgpass
         working-directory: /home/runner
       # Create .env file for tests, and required parent directories
       - run: mkdir -p config
