@@ -87,7 +87,7 @@ def create_dim_counterparty(df_address, df_counterparty):
     dim_counterparty['counterparty_id'] = df_counterparty['counterparty_id']
     dim_counterparty['counterparty_legal_name'] = df_counterparty['counterparty_legal_name']
     dim_counterparty['counterparty_legal_address_line_1'] = df_add['address_line_1']
-    dim_counterparty['counterparty_legal_address_line2'] = df_add['address_line_2']
+    dim_counterparty['counterparty_legal_address_line_2'] = df_add['address_line_2']
     dim_counterparty['counterparty_legal_district'] = df_add['district']
     dim_counterparty['counterparty_legal_city'] = df_add['city']
     dim_counterparty['counterparty_legal_postal_code'] = df_add['postal_code']

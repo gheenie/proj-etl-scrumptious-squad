@@ -289,10 +289,11 @@ def index(dotenv_path_string):
 
 
 # Lambda handler
-def extract_lambda_handler(event={'dotenv_path_string': 'config/.env.development'}, context=None):
+def extract_lambda_handler(event, context):
     """
     Fully integrated all subfunctions
     """
+    
     index(event['dotenv_path_string'])
     logger.info("Completed")
     print("done")
