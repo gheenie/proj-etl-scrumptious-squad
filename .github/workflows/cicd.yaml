@@ -60,11 +60,25 @@ jobs:
       - run: echo 'password=postgres' >> config/.env.test
       # Seed the test Totesys database
       - run: ./extraction_test_db/run_seed_ext_test_db.sh
+        # Environment variables used by the seed script to create
+        # seed databases.
+        env:
+          # The hostname used to communicate with the PostgreSQL service container
+          POSTGRES_HOST: localhost
+          # The default PostgreSQL port
+          POSTGRES_PORT: 5432
       # Seed the test Northcoders warehouse
       - run: ./load_test_warehouse_setup/run_seed_load_test_warehouse.sh
+        # Environment variables used by the seed script to create
+        # seed databases.
+        env:
+          # The hostname used to communicate with the PostgreSQL service container
+          POSTGRES_HOST: localhost
+          # The default PostgreSQL port
+          POSTGRES_PORT: 5432
       - run: make unit-test
-        # Environment variables used by the test script to create
-        # and use seed databases.
+        # Environment variables used by the test script to use
+        # the seed databases.
         env:
           # The hostname used to communicate with the PostgreSQL service container
           POSTGRES_HOST: localhost
