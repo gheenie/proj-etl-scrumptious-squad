@@ -52,6 +52,10 @@ jobs:
       - name: Install dependencies and run checks
         # run: make all
         run: make dev-setup
+      # Create .env file for tests
+      - run: echo 'database=test_totesys' >> config/.env.test 
+      - run: echo 'user=postgres' >> config/.env.test
+      - run: echo 'password=postgres' >> config/.env.test
       - run: make unit-test
         # Environment variables used by the test script to create
         # and use seed databases.
