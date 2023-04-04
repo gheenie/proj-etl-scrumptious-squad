@@ -58,6 +58,10 @@ jobs:
       - run: echo 'database=test_totesys' >> config/.env.test 
       - run: echo 'user=postgres' >> config/.env.test
       - run: echo 'password=postgres' >> config/.env.test
+      # Seed the test Totesys database
+      - run: ./extraction_test_db/run_seed_ext_test_db.sh
+      # Seed the test Northcoders warehouse
+      - run: ./load_test_warehouse_setup/run_seed_load_test_warehouse.sh
       - run: make unit-test
         # Environment variables used by the test script to create
         # and use seed databases.
