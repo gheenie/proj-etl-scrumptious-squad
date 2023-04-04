@@ -37,15 +37,14 @@ def pull_secrets(secret_name='source_DB'):
     else:
         secrets = json.loads(response['SecretString'])
         details = {
-            'user': secrets['user'][0],
-            'password': secrets['password'][0],
-            'database': secrets['database'][0],
-            'host': secrets['host'][0],
-            'port': secrets['port'],
-            'schema': secrets['schema']
+            'user': secrets['user'],
+            'password': secrets['password'],
+            'database': secrets['database'],
+            'host': secrets['host'],
+            'port': secrets['port']
         }
-        details_string = details[0], details[1], details[2], details[3], details[4]
-        return details_string
+        
+        return details['database'], details['user'], details['password'], details['host'], details['port']
 
 
 def make_connection(dotenv_path_string):

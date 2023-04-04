@@ -60,7 +60,7 @@ def test_pull_secrets_returns_correct_secrets(premock_secretsmanager):
     entry_test_db()
 
     # Retrieve secrets using the hardcoded identifier
-    user, password, database, host, port = pull_secrets('github_actions_DB')
+    database, user, password, host, port = pull_secrets('github_actions_DB')
 
     assert user == 'github_actions_user'
     assert password == 'github_actions_password'
