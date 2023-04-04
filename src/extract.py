@@ -304,7 +304,7 @@ def index(dotenv_path_string):
     add_updates(updates, bucketname)
 
 # Lambda handler
-def extract_lambda_handler(event={'dotenv_path_string': 'config/.env.development'}, context=None):
+def extract_lambda_handler(event, context):
     index(event['dotenv_path_string'])
     logger.info("Completed")
     print("done")
