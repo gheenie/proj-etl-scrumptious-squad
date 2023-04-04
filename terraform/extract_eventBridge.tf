@@ -6,6 +6,9 @@ resource "aws_cloudwatch_event_rule" "extract_scheduler" {
 resource "aws_cloudwatch_event_target" "extract_lambda_target" {
     rule = aws_cloudwatch_event_rule.extract_scheduler.name
     arn  = aws_lambda_function.extract_lambda.arn
+    input = jsonencode({
+        "dotenv_path_string": "config/.env.development"
+    })
 }
 
 resource "aws_lambda_permission" "allow_extract_scheduler" {
