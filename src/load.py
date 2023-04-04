@@ -8,13 +8,12 @@ from botocore.exceptions import ClientError
 def pull_secrets(secret_id):
     secret_manager = boto3.client("secretsmanager")
     try:
-        response = secret_manager.describe_secret(SecretId=secret_id)
+        response = secret_manager.get_secret_value(SecretId=secret_id)
     except ClientError as e:
         if e.response['Error']['Code'] == 'ResourceNotFoundException':
             raise ValueError(f"Secret with {secret_id} does not exist")
         else:
             raise e
-    response = secret_manager.get_secret_value(SecretId=secret_id)
     secret_text = json.loads(response["SecretString"])
     return secret_text
 
@@ -43,10 +42,9 @@ def get_data(bucket_prefix):
 
         if not bucket_name:
             return []
-        file_path = 'data/parquet'
         s3 = boto3.client('s3')
         objects = s3.list_objects_v2(
-            Bucket=bucket_name, Prefix= file_path)['Contents']
+            Bucket=bucket_name)['Contents']
         dfs = {}
         for obj in objects:
             key = obj['Key']
