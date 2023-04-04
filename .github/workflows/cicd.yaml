@@ -59,7 +59,7 @@ jobs:
       #   run: export PYTHONPATH=$(pwd)
       # - name: Run tests
       #   run: pytest tests/test_extract.py
-      - run: python -m pytest --import-mode=append tests/
+      - run: make unit-test
         # Environment variables used by the test script to create
         # and use seed databases.
         env:
