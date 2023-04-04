@@ -71,53 +71,53 @@ jobs:
       - name: Run pytest
         run: make unit-test
   
-  # # Label of the Continuous Deployment job
-  # deployment:
-  #   # Uses a Linux environment to match our development environment
-  #   runs-on: ubuntu-latest
+  # Label of the Continuous Deployment job
+  deployment:
+    # Uses a Linux environment to match our development environment
+    runs-on: ubuntu-latest
 
-  #   # Forces this job to run only after the run-tests job is complete
-  #   needs: run-tests
+    # Forces this job to run only after the run-tests job is complete
+    needs: run-tests
 
-  #   # Actions and CLI commands to run for the job
-  #   steps:
-  #     # Downloads a copy of the code in your repository before running CD Terraforming
-  #     - name: Checkout Repo
-  #       uses: actions/checkout@v3
-  #     # Installs Terraform
-  #     - name: Install Terraform
-  #       uses: hashicorp/setup-terraform@v2
-  #     # Sets AWS credentials for Terraform.
-  #     # These are pulled from project's GitHub settings
-  #     - name: Configure Credentials
-  #       uses: aws-actions/configure-aws-credentials@v2
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-  #         aws-region: us-east-1
-  #     # Start Terraforming the S3 bucket to act as a backend for .tfstate
-  #     - name: Create tfstate bucket - Terraform Init
-  #       run: terraform init
-  #       working-directory: ./terraform/create_secrets_bucket
-  #     - name: Create tfstate bucket - Terraform Apply
-  #       run: terraform apply -auto-approve
-  #       working-directory: ./terraform/create_secrets_bucket
-  #       # Ignores any error in this run.
-  #       # This run will fail if the bucket exists in your account OR in the internet,
-  #       # but if the existing bucket is not yours the following Terraforming will fail anyway
-  #       continue-on-error: true
-  #     # Start the main Terraforming
-  #     - name: Main Terraform Init
-  #       run: terraform init
-  #       working-directory: ./terraform
-  #     - name: Main Terraform Plan
-  #       run: terraform plan
-  #       working-directory: ./terraform
-  #       id: plan
-  #     ## Make GitHub Actions fail if Terraform plan returns errors
-  #     - name: Main Terraform Plan Status
-  #       if: steps.plan.outcome == 'failure'
-  #       run: exit 1
-  #     - name: Main Terraform Apply
-  #       run: terraform apply -auto-approve
-  #       working-directory: ./terraform
+    # Actions and CLI commands to run for the job
+    steps:
+      # Downloads a copy of the code in your repository before running CD Terraforming
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+      # Installs Terraform
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+      # Sets AWS credentials for Terraform.
+      # These are pulled from project's GitHub settings
+      - name: Configure Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: us-east-1
+      # Start Terraforming the S3 bucket to act as a backend for .tfstate
+      - name: Create tfstate bucket - Terraform Init
+        run: terraform init
+        working-directory: ./terraform/create_secrets_bucket
+      - name: Create tfstate bucket - Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: ./terraform/create_secrets_bucket
+        # Ignores any error in this run.
+        # This run will fail if the bucket exists in your account OR in the internet,
+        # but if the existing bucket is not yours the following Terraforming will fail anyway
+        continue-on-error: true
+      # Start the main Terraforming
+      - name: Main Terraform Init
+        run: terraform init
+        working-directory: ./terraform
+      - name: Main Terraform Plan
+        run: terraform plan
+        working-directory: ./terraform
+        id: plan
+      ## Make GitHub Actions fail if Terraform plan returns errors
+      - name: Main Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+      - name: Main Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: ./terraform
