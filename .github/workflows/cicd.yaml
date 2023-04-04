@@ -64,7 +64,7 @@ jobs:
         # seed databases.
         env:
           # The hostname used to communicate with the PostgreSQL service container
-          POSTGRES_HOST: postgres
+          POSTGRES_HOST: localhost
           # The default PostgreSQL port
           POSTGRES_PORT: 5432
       # Seed the test Northcoders warehouse
@@ -73,7 +73,7 @@ jobs:
         # seed databases.
         env:
           # The hostname used to communicate with the PostgreSQL service container
-          POSTGRES_HOST: postgres
+          POSTGRES_HOST: localhost
           # The default PostgreSQL port
           POSTGRES_PORT: 5432
       - run: make unit-test
@@ -81,7 +81,7 @@ jobs:
         # the seed databases.
         env:
           # The hostname used to communicate with the PostgreSQL service container
-          POSTGRES_HOST: postgres
+          POSTGRES_HOST: localhost
           # The default PostgreSQL port
           POSTGRES_PORT: 5432
   
