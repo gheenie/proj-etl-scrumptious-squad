@@ -3,20 +3,21 @@
 name: deploy-etl-apps
 
 on:
-  # Allow manual triggers on GitHub
+  # Allows manual triggers on GitHub
   workflow_dispatch:
+  # Triggers jobs on push to GitHub
   # push:
   #   branches:
   #     - main
   push:
 
 jobs:
-  # Label of the runner job
-  runner-job:
+  # Label of the run-tests job
+  run-tests:
     # You must use a Linux environment when using service containers or container jobs
     runs-on: ubuntu-latest
 
-    # Service containers to run with `runner-job`
+    # Service containers to run with `run-tests`
     services:
       # Label used to access the service container
       postgres:
@@ -32,27 +33,33 @@ jobs:
           --health-timeout 5s
           --health-retries 5
         ports:
-          # Maps tcp port 5432 on service container to the host
+          # Maps tcp port 5432 on the service container to the host
           - 5432:5432
 
+    # Actions and CLI commands to run for the job
     steps:
       # Downloads a copy of the code in your repository before running CI tests
       - name: Checkout Repo
         uses: actions/checkout@v3
+      # Installs Python
       - name: Get Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
+      # Installs Make
       - name: Install Make
         run: sudo apt install make -y
       # Performs a clean installation of all dependencies in the `requirements.txt` file
+      # and other dependencies specified in the Makefile
       - name: Install dependencies
         run: make dev-setup
-      # Seed the test Totesys database
-      - run: PGPASSWORD=postgres psql -f ./extraction_test_db/test_db_setup/setup_test_db.sql -p 5432 -h localhost -U postgres
-      # Seed the test Northcoders warehouse
-      - run: PGPASSWORD=postgres psql -f ./load_test_warehouse_setup/test_warehouse_setup/setup_test_warehouse.sql -p 5432 -h localhost -U postgres
-      # Create .env file for tests, and required parent directories
+      # Seed the test Totesys database using the service container's credentials
+      - name: Seed Totesys database
+        run: PGPASSWORD=postgres psql -f ./extraction_test_db/test_db_setup/setup_test_db.sql -p 5432 -h localhost -U postgres
+      # Seed the test Northcoders warehouse using the service container's credentials
+      - name: Seed Northcoders warehouse
+        run: PGPASSWORD=postgres psql -f ./load_test_warehouse_setup/test_warehouse_setup/setup_test_warehouse.sql -p 5432 -h localhost -U postgres
+      # Create the .env file for tests, and the required parent directories
       - run: mkdir -p config
       - run: touch config/.env.test
       - run: echo 'database=test_totesys' >> config/.env.test 
@@ -61,10 +68,11 @@ jobs:
       # Run tests
       - run: make unit-test
   
+  # Label of the Continuous Deployment job
   # deployment:
   #   name: deployment
   #   runs-on: ubuntu-latest
-  #   needs: runner-job
+  #   needs: run-tests
   #   steps:
   #     - name: Checkout Repo
   #       uses: actions/checkout@v3
