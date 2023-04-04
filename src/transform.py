@@ -116,6 +116,12 @@ def create_dim_transaction(df_transaction):
     dim_transaction['purchase_order_id'] = df_transaction['purchase_order_id']
     return dim_transaction
 
+def create_dim_payment_type(df_payment_type):
+    dim_payment_type = pd.DataFrame()
+    dim_payment_type['payment_type_id'] = df_payment_type['payment_type_id']
+    dim_payment_type['payment_type_name'] = df_payment_type['payment_type_name']
+    return dim_payment_type
+
 def create_fact_sales_order(df_sales_order):
     fact_sales_order = pd.DataFrame() 
     fact_sales_order.insert(0, "sales_record_id", range(1, 1 + len(df_sales_order)))
@@ -207,6 +213,8 @@ def transform():
     dim_currency = {'dim_currency' : create_dim_currency(df_currency)}
     dim_counterparty = {'dim_counterparty' : create_dim_counterparty(df_address, df_counterparty)}
     dim_staff = {'dim_staff' : create_dim_staff(df_staff, df_department)}
+    dim_transaction = {'dim_transaction' : create_dim_transaction(df_transaction)}
+    dim_payment_type = {'dim_payment_type' : create_dim_payment_type(df_payment_type)}
     fact_sales_order = {'fact_sales_order' : create_fact_sales_order(df_sales_order)}
     fact_purchase_order =  {'fact_purchase_order' : create_fact_purchase_order(df_purchase_order)}
     fact_payment = {'fact_payment' : create_fact_payment(df_payment)}
@@ -217,6 +225,8 @@ def transform():
     push_to_cloud(dim_currency)
     push_to_cloud(dim_counterparty)
     push_to_cloud(dim_staff)
+    push_to_cloud(dim_transaction)
+    push_to_cloud(dim_payment_type)
     push_to_cloud(fact_sales_order)
     push_to_cloud(fact_purchase_order)
     push_to_cloud(fact_payment)

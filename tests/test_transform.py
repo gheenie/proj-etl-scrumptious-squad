@@ -86,6 +86,22 @@ def test_dim_staff(mock_bucket_and_parquet_files):
     assert dim_staff['department_name'][1] == 'dept-b'
     assert dim_staff['email_address'][0] == 'fna.lna@terrifictotes.com'
 
+def test_dim_transaction(mock_bucket_and_parquet_files):
+    df_transaction = get_parquet('transaction')
+    dim_transaction = create_dim_transaction(df_transaction)
+    assert dim_transaction.shape[1] == 4
+    assert dim_transaction['transaction_id'][1] == 2
+    assert dim_transaction['transaction_type'][3] == 'SALE'
+    assert dim_transaction['sales_order_id'][3] == 2
+    assert dim_transaction['purchase_order_id'][0] == 1
+
+def test_dim_payment_type(mock_bucket_and_parquet_files):
+    df_payment_type = get_parquet('payment_type')
+    dim_payment_type = create_dim_payment_type(df_payment_type)
+    assert dim_payment_type.shape[1] == 2
+    assert dim_payment_type['payment_type_id'][1] == 2
+    assert dim_payment_type['payment_type_name'][3] == 'PURCHASE_REFUND'
+
 def test_fact_sales_order(mock_bucket_and_parquet_files):
     df_sales_order = get_parquet('sales_order')
     fact_sales_order = create_fact_sales_order(df_sales_order)
@@ -147,11 +163,4 @@ def test_fact_payment(mock_bucket_and_parquet_files):
     assert fact_payment['paid'][1] == True
     assert fact_payment['payment_date'][1] == '2023-01-01'
 
-def test_dim_transaction(mock_bucket_and_parquet_files):
-    df_transaction = get_parquet('transaction')
-    dim_transaction = create_dim_transaction(df_transaction)
-    assert dim_transaction.shape[1] == 4
-    assert dim_transaction['transaction_id'][1] == 2
-    assert dim_transaction['transaction_type'][3] == 'SALE'
-    assert dim_transaction['sales_order_id'][3] == 2
-    assert dim_transaction['purchase_order_id'][0] == 1
+
