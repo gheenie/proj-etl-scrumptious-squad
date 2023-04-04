@@ -1,5 +1,6 @@
 """
-we will fill it in later
+the exreact function will get data updates from the data lake 
+and push it to the ingested data s3 bucket in parquet format
 """
 
 import bisect
@@ -19,19 +20,16 @@ logger = logging.getLogger('MyLogger')
 logger.setLevel(logging.INFO)
 
 
-def pull_secrets(secret_name = 'source_DB'):
+def pull_secrets(secret_name='source_DB'):
     """
     we will fill it in later
     """
     secrets_manager = boto3.client('secretsmanager')
-
     try:
         response = secrets_manager.get_secret_value(SecretId=secret_name)
 
     except ClientError as error:
         error_code = error.response['Error']['Code']
-
-        print(error_code)
         if error_code == 'ResourceNotFoundException':
             raise Exception(f'ERROR: name not found') from error
         else:
@@ -39,20 +37,21 @@ def pull_secrets(secret_name = 'source_DB'):
     else:
         secrets = json.loads(response['SecretString'])
         details = {
-            'user': secrets['user'],
-            'password': secrets['password'],
-            'database': secrets['database'],
-            'host': secrets['host'],
-            'port': secrets['port']
+            'user': secrets['user'][0],
+            'password': secrets['password'][0],
+            'database': secrets['database'][0],
+            'host': secrets['host'][0],
+            'port': secrets['port'],
+            'schema': secrets['schema']
         }
-        print(details)
-        return details['user'], details['password'], details['database'], details['host'], details['port']
+        details_string = details[0], details[1], details[2], details[3], details[4]
+        return details_string
 
 
 def make_connection(dotenv_path_string):
     """
-we will fill it in later
-"""
+   Creates link to the data lake
+    """
     dotenv_path = Path(dotenv_path_string)
     load_dotenv(dotenv_path=dotenv_path)
 
@@ -75,8 +74,8 @@ we will fill it in later
 
 def get_titles(dbcur):
     """
-we will fill it in later
-"""
+    Retrieves table names from the data lake
+    """
     sql = """SELECT table_name
     FROM information_schema.tables
     WHERE table_schema='public'
@@ -90,8 +89,8 @@ we will fill it in later
 
 def get_whole_table(dbcur, title):
     """
-we will fill it in later
-"""
+    Retrieves content of each table in the data lake 
+    """
     sql = f'SELECT * FROM {title[0]}'
     try:
         dbcur.execute(sql)
@@ -104,8 +103,8 @@ we will fill it in later
 
 def get_recents_table(dbcur, title, created, updated):
     """
-we will fill it in later
-"""
+    Identifies the newly added data and returns in table format
+    """
     first_condition = f"(created_at > '{created}'::timestamp)"
     second_condition = f"(last_updated > '{updated}'::timestamp)"
     sql = f"SELECT * FROM {title[0]} WHERE ({first_condition}) OR ({second_condition})"
@@ -120,20 +119,19 @@ we will fill it in later
 
 def get_file_info_in_bucket(bucketname):
     """
-we will fill it in later
-"""
+    Returns the names of the files in the s3 bucket in JSON format
+    """
     try:
         s3_client = boto3.client('s3')
         return s3_client.list_objects_v2(Bucket=bucketname)
     except Exception as error:
-        raise Exception(
-            f"ERROR CHECKING OBJECTS IN BUCKET: {error}") from error
+        raise Exception(f"ERROR CHECKING OBJECTS IN BUCKET: {error}") from error
 
 
 def get_bucket_name(bucket_prefix):
     """
-we will fill it in later
-"""
+    Access S3 and returns the ingested bucket name
+    """
     s3_client = boto3.client('s3')
     try:
         response = s3_client.list_buckets()
@@ -147,8 +145,8 @@ we will fill it in later
 
 def check_table_in_bucket(title, response):
     """
-we will fill it in later
-"""
+    Checks if the specified table exists in the S3 bucket 
+    """
     if response['KeyCount'] == 0:
         return False
     filename = f"{title[0]}.parquet"
@@ -158,8 +156,8 @@ we will fill it in later
 
 def get_parquet(title, bucketname, response):
     """
-we will fill it in later
-"""
+    Retrieves the specified file and converts to a parquet format 
+    """
     filename = f"{title}.parquet"
     if response['KeyCount'] == 0:
         return False
@@ -170,34 +168,29 @@ we will fill it in later
         client_object = client.Object(bucketname, filename)
         client_object.download_fileobj(buffer)
         data_frame = pd.read_parquet(buffer)
-
         return data_frame
 
 
 def get_most_recent_time(title, bucketname, response):
     """
-    function to find most recent update and creation times for table rows
-    to check which values need to be updated
+    Finds the most recent updates and creation times for table rows
+    to identify which values need to be updated
     https://www.striim.com/blog/change-data-capture-cdc-what-it-is-and-how-it-works/ 
-
-    table = pd.read_parquet(f"./database-access/data/parquet/{title[0]}.parquet", engine='pyarrow')
-
-    compile a sorted list of 'last_updated' values and another sorted list of 'created_at' values 
-    existing inside previous readings
-
-"""
+    """
     updates = []
     creations = []
+    # table = pd.read_parquet(f"./database-access/data/parquet/{title[0]}.parquet", engine='pyarrow')
     table = get_parquet(title[0], bucketname, response)
     for date in set(table['last_updated']):
         bisect.insort(updates, date)
     for date in set(table['created_at']):
         bisect.insort(creations, date)
 
-    # stores the most recent values from our previous readings
+    # Stores the most recent values from our previous readings
     last_update = updates[len(updates)-1]
     last_creation = creations[len(creations)-1]
 
+    # Compile a sorted list of pre-existing 'last_updated' values and another of 'created_at' values
     # returns most recent values in dict
     return {
         'created_at': last_creation,
@@ -207,13 +200,12 @@ def get_most_recent_time(title, bucketname, response):
 
 def check_each_table(tables, dbcur, bucketname):
     """
-we will fill it in later
-"""
+    Gets the newly added data and pushes to a dict in parquet format
+    """
     to_be_added = []
     response = get_file_info_in_bucket(bucketname)
 
     for title in tables:
-
         # if there are no existing parquet files storing our data, create them
         if not check_table_in_bucket(title, response):
             print(title[0], "to be added")
@@ -230,10 +222,9 @@ we will fill it in later
                 dbcur, title, readings_created_at, readings_updated)
             results = [dict(zip(keys, row)) for row in rows]
 
-            # if there any readings, add them to a dict with the table title as a key.
+            # if there any readings, add them to a dict with the table title as a key
             # append them into the to_be_added list
             # pd.DataFrame will transform the data into a pandas parquet format
-
             if len(results) > 0:
                 print(title[0], " is newer")
             else:
@@ -242,22 +233,19 @@ we will fill it in later
             # if len(new_rows) > 0:print({title[0]: pd.DataFrame(new_rows)})
             if len(results) > 0:
                 to_be_added.append({title[0]: pd.DataFrame(results)})
-
     return to_be_added
 
 
 def push_to_cloud(local_object, bucketname):
     """
-we will fill it in later
-"""
+    Subfunction that pushes local_object to the cloud
+    """
     # seperate key and value from object
     key = [key for key in local_object.keys()][0]
     values = local_object[key]
 
     # use key for file name, and value as the content for the file
     values.to_parquet(f'/tmp/{key}.parquet')
-
-    # print(key)
 
     s3_client = boto3.client('s3')
     s3_client.upload_file(f'/tmp/{key}.parquet', bucketname, f'{key}.parquet')
@@ -268,27 +256,19 @@ we will fill it in later
 
 def add_updates(updates, bucketname):
     """
-we will fill it in later
-"""
-    # iterate through the list of dicts that need to be updated
+    Iterates through the list of dicts that need to be updated and push to the cloud
+    """
     for local_object in updates:
         push_to_cloud(local_object, bucketname)
 
 
 def index(dotenv_path_string):
     """
-    we will fill it in later
-    function to connect to AWS RDS, find a list of table names, iterate through them 
-    and evaluate whether there any updates to make.
-    if so, return a list of all neccessary updates in pandas parquet format
+    Integrates all subfunctions to connect to AWS RDS, find a list of table names, iterate through them 
+    to evaluate whether there any updates to make.
+    if so, return a list of all neccessary updates in pandas parquet format,
     if not exit the programme.
-
-    iterate through the table_names and check for any values which need to updated, 
-    storing them in the 'updates' variable
-
-    execute SQL query for finding a list of table names inside RDS 
-    and store it inside tables variable
-"""
+    """
     # connect to AWS RDS
     conn = make_connection(dotenv_path_string)
     dbcur = conn.cursor()
@@ -296,15 +276,25 @@ def index(dotenv_path_string):
     # get bucket name
     bucketname = get_bucket_name('scrumptious-squad-in-data-')
 
+    # Executes SQL query for finding a list of table names inside RDS 
+    # and store it in tables variable
     tables = get_titles(dbcur)
 
+    # Iterates through the table_names and checks for any values which need to updated, 
+    # storing them in the 'updates' variable.
     updates = check_each_table(tables, dbcur, bucketname)
     dbcur.close()
 
     add_updates(updates, bucketname)
 
+
 # Lambda handler
 def extract_lambda_handler(event, context):
+    """
+    Fully integrated all subfunctions
+    """
+    
     index(event['dotenv_path_string'])
     logger.info("Completed")
     print("done")
+    print(context)
