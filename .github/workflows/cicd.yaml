@@ -52,7 +52,9 @@ jobs:
       - name: Install dependencies and run checks
         # run: make all
         run: make dev-setup
-      # Create .env file for tests
+      # Create .env file for tests, and required parent directories
+      - run: mkdir -p config
+      - run: touch config/.env.test
       - run: echo 'database=test_totesys' >> config/.env.test 
       - run: echo 'user=postgres' >> config/.env.test
       - run: echo 'password=postgres' >> config/.env.test
