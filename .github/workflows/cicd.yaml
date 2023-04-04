@@ -5,10 +5,11 @@ name: deploy-etl-apps
 on:
   # Allows manual triggers on GitHub
   workflow_dispatch:
-  # Triggers jobs on push to GitHub
+  # # Triggers jobs on push to GitHub main branch
   # push:
   #   branches:
   #     - main
+  # Triggers jobs on push to any GitHub branch
   push:
 
 jobs:
@@ -17,7 +18,8 @@ jobs:
     # You must use a Linux environment when using service containers or container jobs
     runs-on: ubuntu-latest
 
-    # Service containers to run with `run-tests`
+    # Service containers to run with `run-tests`.
+    # Provides PostgreSQL so that we don't have to manually install and setup
     services:
       # Label used to access the service container
       postgres:
@@ -69,42 +71,53 @@ jobs:
       - name: Run pytest
         run: make unit-test
   
-  # Label of the Continuous Deployment job
+  # # Label of the Continuous Deployment job
   # deployment:
-  #   name: deployment
+  #   # Uses a Linux environment to match our development environment
   #   runs-on: ubuntu-latest
+
+  #   # Forces this job to run only after the run-tests job is complete
   #   needs: run-tests
+
+  #   # Actions and CLI commands to run for the job
   #   steps:
+  #     # Downloads a copy of the code in your repository before running CD Terraforming
   #     - name: Checkout Repo
   #       uses: actions/checkout@v3
+  #     # Installs Terraform
   #     - name: Install Terraform
   #       uses: hashicorp/setup-terraform@v2
+  #     # Sets AWS credentials for Terraform.
+  #     # These are pulled from project's GitHub settings
   #     - name: Configure Credentials
   #       uses: aws-actions/configure-aws-credentials@v2
   #       with:
   #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
   #         aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
   #         aws-region: us-east-1
-  #     - name: create tfstate bucket - Terraform Init
+  #     # Start Terraforming the S3 bucket to act as a backend for .tfstate
+  #     - name: Create tfstate bucket - Terraform Init
   #       run: terraform init
   #       working-directory: ./terraform/create_secrets_bucket
-  #     - name: create tfstate bucket - Terraform Apply
+  #     - name: Create tfstate bucket - Terraform Apply
   #       run: terraform apply -auto-approve
   #       working-directory: ./terraform/create_secrets_bucket
-  #       # Will fail if bucket exists in your account OR in the internet.
-  #       # Ignore the error, if the existing bucket is not yours the later code will fail anyway.
+  #       # Ignores any error in this run.
+  #       # This run will fail if the bucket exists in your account OR in the internet,
+  #       # but if the existing bucket is not yours the following Terraforming will fail anyway
   #       continue-on-error: true
-  #     - name: main Terraform Init
+  #     # Start the main Terraforming
+  #     - name: Main Terraform Init
   #       run: terraform init
   #       working-directory: ./terraform
-  #     - name: main Terraform Plan
-  #       id: plan
+  #     - name: Main Terraform Plan
   #       run: terraform plan
   #       working-directory: ./terraform
-  #     - name: main Terraform Plan Status
+  #       id: plan
+  #     ## Make GitHub Actions fail if Terraform plan returns errors
+  #     - name: Main Terraform Plan Status
   #       if: steps.plan.outcome == 'failure'
   #       run: exit 1
-  #       working-directory: ./terraform
-  #     - name: main Terraform Apply
+  #     - name: Main Terraform Apply
   #       run: terraform apply -auto-approve
   #       working-directory: ./terraform
