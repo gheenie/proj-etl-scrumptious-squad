@@ -5,12 +5,12 @@ name: deploy-etl-apps
 on:
   # Allows manual triggers on GitHub
   workflow_dispatch:
-  # # Triggers jobs on push to GitHub main branch
-  # push:
-  #   branches:
-  #     - main
-  # Triggers jobs on push to any GitHub branch
+  # Triggers jobs on push to GitHub main branch
   push:
+    branches:
+      - main
+  # # Triggers jobs on push to any GitHub branch
+  # push:
 
 jobs:
   # Label of the run-tests job
