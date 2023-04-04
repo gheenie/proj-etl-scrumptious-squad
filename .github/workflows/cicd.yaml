@@ -71,7 +71,7 @@ jobs:
       - run: echo 'user=postgres' >> config/.env.test
       - run: echo 'password=postgres' >> config/.env.test
       # Seed the test Totesys database
-      - run: source ./extraction_test_db/run_seed_ext_test_db.sh
+      - run: ./extraction_test_db/run_seed_ext_test_db.sh
         # Environment variables used by the seed script to create
         # seed databases.
         env:
