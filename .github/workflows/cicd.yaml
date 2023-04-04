@@ -3,16 +3,52 @@
 name: deploy-etl-apps
 
 on:
+  # Allow manual triggers on GitHub
   workflow_dispatch:
   # push:
   #   branches:
-  #     - main   
-  
+  #     - main
+  push:
+
 jobs:
-  run-tests:
-    name: Setup environment and run tests
+  # Label of the runner job
+  runner-job:
+    # You must use a Linux environment when using service containers or container jobs
     runs-on: ubuntu-latest
+
+    # Service containers to run with `runner-job`
+  
+  # # Label of the container job
+  # container-job:
+  #   # Containers must run in Linux based operating systems
+  #   runs-on: ubuntu-latest
+  #   # Docker Hub image that `container-job` executes in
+  #   container: python:3.9-bullseye
+
+    # Service containers to run with `container-job`
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
+
+  # run-tests:
+  #   name: Setup environment and run tests
+  #   runs-on: ubuntu-latest
     steps:
+      # Downloads a copy of the code in your repository before running CI tests
       - name: Checkout Repo
         uses: actions/checkout@v3
       - name: Get Python
@@ -21,57 +57,78 @@ jobs:
           python-version: '3.9'
       - name: Install Make
         run: sudo apt install make -y
+      # Performs a clean installation of all dependencies in the `requirements.txt` file
       - name: Install dependencies and run checks
         # run: make all
         run: make dev-setup
-      - name: Connect to PostgreSQL
-      # Runs a script that creates a PostgreSQL table, populates
-      # the table with data, and then retrieves the data
-      run: psql -f ./../load_test_warehouse_setup/test_warehouse_setup/setup_test_warehouse.sql
-      run: psql -f ./../extraction_test_db/test_db_setup/
-      # Environment variables used by the `client.js` script to create
-      # a new PostgreSQL table.
-      env:
-        # The hostname used to communicate with the PostgreSQL service container
-        POSTGRES_HOST: localhost          
-        # The default PostgreSQL port
-        POSTGRES_PORT: 5432
+      # Create .env file for tests, and required parent directories
+      - run: mkdir -p config
+      - run: touch config/.env.test
+      - run: echo 'database=test_totesys' >> config/.env.test 
+      - run: echo 'user=postgres' >> config/.env.test
+      - run: echo 'password=postgres' >> config/.env.test
+      # Seed the test Totesys database
+      - run: ./extraction_test_db/run_seed_ext_test_db.sh
+        # Environment variables used by the seed script to create
+        # seed databases.
+        env:
+          # The hostname used to communicate with the PostgreSQL service container
+          POSTGRES_HOST: localhost
+          # The default PostgreSQL port
+          POSTGRES_PORT: 5432
+      # Seed the test Northcoders warehouse
+      - run: ./load_test_warehouse_setup/run_seed_load_test_warehouse.sh
+        # Environment variables used by the seed script to create
+        # seed databases.
+        env:
+          # The hostname used to communicate with the PostgreSQL service container
+          POSTGRES_HOST: localhost
+          # The default PostgreSQL port
+          POSTGRES_PORT: 5432
+      - run: make unit-test
+        # Environment variables used by the test script to use
+        # the seed databases.
+        env:
+          # The hostname used to communicate with the PostgreSQL service container
+          POSTGRES_HOST: localhost
+          # The default PostgreSQL port
+          POSTGRES_PORT: 5432
   
-  deployment:
-    name: deployment
-    runs-on: ubuntu-latest
-    needs: run-tests
-    steps:
-      - name: Checkout Repo
-        uses: actions/checkout@v3
-      - name: Install Terraform
-        uses: hashicorp/setup-terraform@v2
-      - name: Configure Credentials
-        uses: aws-actions/configure-aws-credentials@v2
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
-          aws-region: us-east-1
-      - name: create tfstate bucket - Terraform Init
-        run: terraform init
-        working-directory: ./terraform/create_secrets_bucket
-      - name: create tfstate bucket - Terraform Apply
-        run: terraform apply -auto-approve
-        working-directory: ./terraform/create_secrets_bucket
-        # Will fail if bucket exists in your account OR in the internet.
-        # Ignore the error, if the existing bucket is not yours the later code will fail anyway.
-        continue-on-error: true
-      - name: main Terraform Init
-        run: terraform init
-        working-directory: ./terraform
-      - name: main Terraform Plan
-        id: plan
-        run: terraform plan
-        working-directory: ./terraform
-      - name: main Terraform Plan Status
-        if: steps.plan.outcome == 'failure'
-        run: exit 1
-        working-directory: ./terraform
-      - name: main Terraform Apply
-        run: terraform apply -auto-approve
-        working-directory: ./terraform
+  # deployment:
+  #   name: deployment
+  #   runs-on: ubuntu-latest
+  #   needs: run-tests
+  #   steps:
+  #     - name: Checkout Repo
+  #       uses: actions/checkout@v3
+  #     - name: Install Terraform
+  #       uses: hashicorp/setup-terraform@v2
+  #     - name: Configure Credentials
+  #       uses: aws-actions/configure-aws-credentials@v2
+  #       with:
+  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+  #         aws-region: us-east-1
+  #     - name: create tfstate bucket - Terraform Init
+  #       run: terraform init
+  #       working-directory: ./terraform/create_secrets_bucket
+  #     - name: create tfstate bucket - Terraform Apply
+  #       run: terraform apply -auto-approve
+  #       working-directory: ./terraform/create_secrets_bucket
+  #       # Will fail if bucket exists in your account OR in the internet.
+  #       # Ignore the error, if the existing bucket is not yours the later code will fail anyway.
+  #       continue-on-error: true
+  #     - name: main Terraform Init
+  #       run: terraform init
+  #       working-directory: ./terraform
+  #     - name: main Terraform Plan
+  #       id: plan
+  #       run: terraform plan
+  #       working-directory: ./terraform
+  #     - name: main Terraform Plan Status
+  #       if: steps.plan.outcome == 'failure'
+  #       run: exit 1
+  #       working-directory: ./terraform
+  #     - name: main Terraform Apply
+  #       run: terraform apply -auto-approve
+  #       working-directory: ./terraform
