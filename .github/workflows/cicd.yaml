@@ -17,15 +17,6 @@ jobs:
     runs-on: ubuntu-latest
 
     # Service containers to run with `runner-job`
-  
-  # # Label of the container job
-  # container-job:
-  #   # Containers must run in Linux based operating systems
-  #   runs-on: ubuntu-latest
-  #   # Docker Hub image that `container-job` executes in
-  #   container: python:3.9-bullseye
-
-    # Service containers to run with `container-job`
     services:
       # Label used to access the service container
       postgres:
@@ -44,9 +35,6 @@ jobs:
           # Maps tcp port 5432 on service container to the host
           - 5432:5432
 
-  # run-tests:
-  #   name: Setup environment and run tests
-  #   runs-on: ubuntu-latest
     steps:
       # Downloads a copy of the code in your repository before running CI tests
       - name: Checkout Repo
@@ -58,8 +46,7 @@ jobs:
       - name: Install Make
         run: sudo apt install make -y
       # Performs a clean installation of all dependencies in the `requirements.txt` file
-      - name: Install dependencies and run checks
-        # run: make all
+      - name: Install dependencies
         run: make dev-setup
       # Setup postgreSQL
       - run: touch .pgpass && echo 'localhost:5432:*:postgres:postgres' >> .pgpass && chmod 0600 .pgpass
@@ -80,7 +67,7 @@ jobs:
   # deployment:
   #   name: deployment
   #   runs-on: ubuntu-latest
-  #   needs: run-tests
+  #   needs: runner-job
   #   steps:
   #     - name: Checkout Repo
   #       uses: actions/checkout@v3
