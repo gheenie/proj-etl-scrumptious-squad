@@ -79,30 +79,46 @@ def make_warehouse_connection(secret_id):
         return None
     
 
+from sqlalchemy import create_engine
 def load_data_to_warehouse(secret_id, bucket_prefix):
     try:
-        conn = make_warehouse_connection(secret_id)
-        if not conn:
-            return False
+        # conn = make_warehouse_connection(secret_id)
+        # if not conn:
+        #     return False
         
         dfs = get_data(bucket_prefix)
         if not dfs:
             return False
+
+        details = pull_secrets(secret_id)
+        API_HOST = details['host']
+        API_USER = details['user']
+        API_PASS = details['password']
+        API_DBASE = details['database']
+        conn_string = f'postgresql://{API_USER}:{API_PASS}@{API_HOST}/{API_DBASE}'
+        db = create_engine(conn_string)
+        conn = db.connect()
+
+        for table in dfs:
+            table_name = table[3:]
+            print(f"Loading table {table_name}")
+            table_as_dataframe = dfs[table]
+            table_as_dataframe.to_sql(table_name, con=conn, if_exists='append', index=False)
         
-        with conn.cursor() as cursor:
-            for table in dfs:
-                table_name = table[3:]
-                print(f"Loading table {table_name}")
-                for row in dfs[table].itertuples(index=False):
-                    values = ', '.join(['%s'] * len(row))
-                    columns = ', '.join(row._fields)
-                    sql = f"INSERT INTO {table_name} ({columns}) VALUES ({values})"
-                    cursor.execute(sql, row)
-                    conn.commit()
-                print(f"Data loaded into table {table_name}")
+        # with conn.cursor() as cursor:
+        #     for table in dfs:
+        #         table_name = table[3:]
+        #         print(f"Loading table {table_name}")
+        #         for row in dfs[table].itertuples(index=False):
+        #             values = ', '.join(['%s'] * len(row))
+        #             columns = ', '.join(row._fields)
+        #             sql = f"INSERT INTO {table_name} ({columns}) VALUES ({values})"
+        #             cursor.execute(sql, row)
+        #             conn.commit()
+        #         print(f"Data loaded into table {table_name}")
                 
-        cursor.close()
-        conn.close()
+        # cursor.close()
+        # conn.close()
         return {
             'statusCode': 200,
             'body': 'Successfully loaded into data warehouse'
