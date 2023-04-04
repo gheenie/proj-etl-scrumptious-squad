@@ -20,9 +20,9 @@ logger.setLevel(logging.INFO)
 
 
 def pull_secrets(secret_name = 'source_DB'):
-     """
-  we will fill it in later
-  """
+    """
+    we will fill it in later
+    """
     secrets_manager = boto3.client('secretsmanager')
 
     try:
