@@ -22,7 +22,7 @@ logger.setLevel(logging.INFO)
 
 def pull_secrets(secret_name='source_DB'):
     """
-    we will fill it in later
+    Retrieves the secret from SecretManager
     """
     secrets_manager = boto3.client('secretsmanager')
     try:
@@ -173,7 +173,6 @@ def get_most_recent_time(title, bucketname, response):
     """
     Finds the most recent updates and creation times for table rows
     to identify which values need to be updated
-    https://www.striim.com/blog/change-data-capture-cdc-what-it-is-and-how-it-works/
     """
     updates = []
     creations = []
