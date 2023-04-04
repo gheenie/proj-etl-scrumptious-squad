@@ -72,32 +72,32 @@ jobs:
       - run: echo 'password=postgres' >> config/.env.test
       # Seed the test Totesys database
       - run: PGPASSWORD=postgres psql -f ./extraction_test_db/test_db_setup/setup_test_db.sql -p 5432 -h localhost -U postgres
-      # - run: ./extraction_test_db/run_seed_ext_test_db.sh
-        # Environment variables used by the seed script to create
-        # seed databases.
-        env:
-          # The hostname used to communicate with the PostgreSQL service container
-          POSTGRES_HOST: localhost
-          # The default PostgreSQL port
-          POSTGRES_PORT: 5432
+      # # - run: ./extraction_test_db/run_seed_ext_test_db.sh
+      #   # Environment variables used by the seed script to create
+      #   # seed databases.
+      #   env:
+      #     # The hostname used to communicate with the PostgreSQL service container
+      #     POSTGRES_HOST: localhost
+      #     # The default PostgreSQL port
+      #     POSTGRES_PORT: 5432
       # Seed the test Northcoders warehouse
       - run: PGPASSWORD=postgres psql -f ./load_test_warehouse_setup/test_warehouse_setup/setup_test_warehouse.sql -p 5432 -h localhost -U postgres
-      # - run: ./load_test_warehouse_setup/run_seed_load_test_warehouse.sh
-        # Environment variables used by the seed script to create
-        # seed databases.
-        env:
-          # The hostname used to communicate with the PostgreSQL service container
-          POSTGRES_HOST: localhost
-          # The default PostgreSQL port
-          POSTGRES_PORT: 5432
+      # # - run: ./load_test_warehouse_setup/run_seed_load_test_warehouse.sh
+      #   # Environment variables used by the seed script to create
+      #   # seed databases.
+      #   env:
+      #     # The hostname used to communicate with the PostgreSQL service container
+      #     POSTGRES_HOST: localhost
+      #     # The default PostgreSQL port
+      #     POSTGRES_PORT: 5432
       - run: make unit-test
         # Environment variables used by the test script to use
         # the seed databases.
-        env:
-          # The hostname used to communicate with the PostgreSQL service container
-          POSTGRES_HOST: localhost
-          # The default PostgreSQL port
-          POSTGRES_PORT: 5432
+        # env:
+        #   # The hostname used to communicate with the PostgreSQL service container
+        #   POSTGRES_HOST: localhost
+        #   # The default PostgreSQL port
+        #   POSTGRES_PORT: 5432
   
   # deployment:
   #   name: deployment
