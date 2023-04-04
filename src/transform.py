@@ -108,23 +108,70 @@ def create_dim_staff(df_staff, df_department):
     dim_staff.sort_values('staff_id', inplace=True)
     return dim_staff
 
+def create_dim_transaction(df_transaction):
+    dim_transaction = pd.DataFrame()
+    dim_transaction['transaction_id'] = df_transaction['transaction_id']
+    dim_transaction['transaction_type'] = df_transaction['transaction_type']
+    dim_transaction['sales_order_id'] = df_transaction['sales_order_id']
+    dim_transaction['purchase_order_id'] = df_transaction['purchase_order_id']
+    return dim_transaction
 
-def create_facts_sales_order_table(df_sales_order):
-    sales_order_table = pd.DataFrame() 
-    sales_order_table.insert(0, "sales_record_id", range(1, 1 + len(df_sales_order)))
-    sales_order_table["sales_order_id"] = df_sales_order["sales_order_id"]
-    sales_order_table[["created_date", "created_time"]] = df_sales_order["created_at"].apply(lambda x: pd.Series(str(x).split(" ")))
-    sales_order_table[["last_updated_date", "last_updated_time"]] = df_sales_order["last_updated"].apply(lambda x: pd.Series(str(x).split(" ")))
-    sales_order_table["sales_staff_id"] = df_sales_order["staff_id"]
-    sales_order_table["counterparty_id"] = df_sales_order["counterparty_id"]
-    sales_order_table["units_sold"] = df_sales_order["units_sold"]
-    sales_order_table["unit_price"] = df_sales_order["unit_price"]
-    sales_order_table["currency_id"] = df_sales_order["currency_id"]
-    sales_order_table["design_id"] = df_sales_order["design_id"]
-    sales_order_table["agreed_payment_date"] = df_sales_order["agreed_payment_date"]
-    sales_order_table["agreed_delivery_date"] = df_sales_order["agreed_delivery_date"]
-    sales_order_table["agreed_delivery_location_id"] = df_sales_order["agreed_delivery_location_id"]
-    return sales_order_table
+def create_dim_payment_type(df_payment_type):
+    dim_payment_type = pd.DataFrame()
+    dim_payment_type['payment_type_id'] = df_payment_type['payment_type_id']
+    dim_payment_type['payment_type_name'] = df_payment_type['payment_type_name']
+    return dim_payment_type
+
+def create_fact_sales_order(df_sales_order):
+    fact_sales_order = pd.DataFrame() 
+    fact_sales_order.insert(0, "sales_record_id", range(1, 1 + len(df_sales_order)))
+    fact_sales_order["sales_order_id"] = df_sales_order["sales_order_id"]
+    fact_sales_order[["created_date", "created_time"]] = df_sales_order["created_at"].apply(lambda x: pd.Series(str(x).split(" ")))
+    fact_sales_order[["last_updated_date", "last_updated_time"]] = df_sales_order["last_updated"].apply(lambda x: pd.Series(str(x).split(" ")))
+    fact_sales_order["sales_staff_id"] = df_sales_order["staff_id"]
+    fact_sales_order["counterparty_id"] = df_sales_order["counterparty_id"]
+    fact_sales_order["units_sold"] = df_sales_order["units_sold"]
+    fact_sales_order["unit_price"] = df_sales_order["unit_price"]
+    fact_sales_order["currency_id"] = df_sales_order["currency_id"]
+    fact_sales_order["design_id"] = df_sales_order["design_id"]
+    fact_sales_order["agreed_payment_date"] = df_sales_order["agreed_payment_date"]
+    fact_sales_order["agreed_delivery_date"] = df_sales_order["agreed_delivery_date"]
+    fact_sales_order["agreed_delivery_location_id"] = df_sales_order["agreed_delivery_location_id"]
+    return fact_sales_order
+
+
+def create_fact_purchase_order(df_purchase_order):
+    fact_purchase_order = pd.DataFrame() 
+    fact_purchase_order.insert(0, "purchase_record_id", range(1, 1 + len(df_purchase_order)))
+    fact_purchase_order["purchase_order_id"] = df_purchase_order["purchase_order_id"]
+    fact_purchase_order[["created_date", "created_time"]] = df_purchase_order["created_at"].apply(lambda x: pd.Series(str(x).split(" ")))
+    fact_purchase_order[["last_updated_date", "last_updated_time"]] = df_purchase_order["last_updated"].apply(lambda x: pd.Series(str(x).split(" ")))
+    fact_purchase_order["staff_id"] = df_purchase_order["staff_id"]
+    fact_purchase_order["counterparty_id"] = df_purchase_order["counterparty_id"]
+    fact_purchase_order["item_code"] = df_purchase_order["item_code"]
+    fact_purchase_order["item_quantity"] = df_purchase_order["item_quantity"]
+    fact_purchase_order["item_unit_price"] = df_purchase_order["item_unit_price"]
+    fact_purchase_order["currency_id"] = df_purchase_order["currency_id"]
+    fact_purchase_order["agreed_delivery_date"] = df_purchase_order["agreed_delivery_date"]
+    fact_purchase_order["agreed_payment_date"] = df_purchase_order["agreed_payment_date"]
+    fact_purchase_order["agreed_delivery_location_id"] = df_purchase_order["agreed_delivery_location_id"]
+    return fact_purchase_order
+
+
+def create_fact_payment(df_payment):
+    fact_payment = pd.DataFrame() 
+    fact_payment.insert(0, "payment_record_id", range(1, 1 + len(df_payment)))
+    fact_payment["payment_id"] = df_payment["payment_id"]
+    fact_payment[["created_date", "created_time"]] = df_payment["created_at"].apply(lambda x: pd.Series(str(x).split(" ")))
+    fact_payment[["last_updated_date", "last_updated_time"]] = df_payment["last_updated"].apply(lambda x: pd.Series(str(x).split(" ")))
+    fact_payment["transaction_id"] = df_payment["transaction_id"]
+    fact_payment["counterparty_id"] = df_payment["counterparty_id"]
+    fact_payment["payment_amount"] = df_payment["payment_amount"]
+    fact_payment["currency_id"] = df_payment["currency_id"]
+    fact_payment["payment_type_id"] = df_payment["payment_type_id"]
+    fact_payment["paid"] = df_payment["paid"]
+    fact_payment["payment_date"] = df_payment["payment_date"]
+    return fact_payment
 
 
 # Put the files into the "processed data" s3 bucket
@@ -152,12 +199,12 @@ def transform():
     df_currency = get_parquet('currency')
     df_department = get_parquet('department')
     df_design = get_parquet('design')
-    # df_payment_type = get_parquet('payment_type')
-    # df_payment = get_parquet('payment')
-    # df_purchase_order = get_parquet('purchase_order')
+    df_payment_type = get_parquet('payment_type')
+    df_payment = get_parquet('payment')
+    df_purchase_order = get_parquet('purchase_order')
     df_sales_order = get_parquet('sales_order')
     df_staff = get_parquet('staff')
-    # df_transaction = get_parquet('transaction')
+    df_transaction = get_parquet('transaction')
 
     # Converts dataframes to dictionaries
     dim_date = {'dim_date': create_dim_date('2022-01-01', '2050-01-01')}
@@ -166,7 +213,11 @@ def transform():
     dim_currency = {'dim_currency' : create_dim_currency(df_currency)}
     dim_counterparty = {'dim_counterparty' : create_dim_counterparty(df_address, df_counterparty)}
     dim_staff = {'dim_staff' : create_dim_staff(df_staff, df_department)}
-    facts_sales_order = {'facts_sales_order' : create_facts_sales_order_table(df_sales_order)}
+    dim_transaction = {'dim_transaction' : create_dim_transaction(df_transaction)}
+    dim_payment_type = {'dim_payment_type' : create_dim_payment_type(df_payment_type)}
+    fact_sales_order = {'fact_sales_order' : create_fact_sales_order(df_sales_order)}
+    fact_purchase_order =  {'fact_purchase_order' : create_fact_purchase_order(df_purchase_order)}
+    fact_payment = {'fact_payment' : create_fact_payment(df_payment)}
 
     push_to_cloud(dim_date)
     push_to_cloud(dim_location)
@@ -174,7 +225,11 @@ def transform():
     push_to_cloud(dim_currency)
     push_to_cloud(dim_counterparty)
     push_to_cloud(dim_staff)
-    push_to_cloud(facts_sales_order)
+    push_to_cloud(dim_transaction)
+    push_to_cloud(dim_payment_type)
+    push_to_cloud(fact_sales_order)
+    push_to_cloud(fact_purchase_order)
+    push_to_cloud(fact_payment)
 
 # transform()
 

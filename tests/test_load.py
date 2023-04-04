@@ -86,7 +86,6 @@ def test_get_data_dim_currrency(s3_client):
     pd.testing.assert_frame_equal(expectedfile, dfs["df_dim_currency"])
 
 
-
 @patch('src.load.pg8000.connect')
 @patch('src.load.pull_secrets', return_value={
         'host': 'test-missiles',

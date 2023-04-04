@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for file in "./test_warehouse_setup"/*.sql; do
+for file in "./extraction_test_db/test_db_setup"/*.sql; do
     psql -f "${file}" > ${file%.sql}.txt
   
 done

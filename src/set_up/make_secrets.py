@@ -95,20 +95,21 @@ def entry_warehouse():
 
 
 def get_inputs_for_test_db():
-    dotenv_path = Path('config/.env.test')
-    load_dotenv(dotenv_path=dotenv_path)
+    user = 'github_actions_user'
+    password = 'github_actions_password'
+    database = 'github_actions_database'
+    host = 'localhost'
+    port = '5432'
 
-    user = os.environ['user']
-    password = os.environ['password']
-    database = os.environ['database']
-
-    secret_identifier = 'test_DB'
+    secret_identifier = 'github_actions_DB'
 
     # Define the secret to be stored
     secret = {
         'user': user,
         'password': password,
         'database': database,
+        'host': host,
+        'port': port
     }
     
     return secret, secret_identifier

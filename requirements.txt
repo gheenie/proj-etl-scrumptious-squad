@@ -11,4 +11,3 @@ flake8
 safety
 bandit
 autopep8
-

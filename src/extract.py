@@ -19,11 +19,10 @@ logger = logging.getLogger('MyLogger')
 logger.setLevel(logging.INFO)
 
 
-def pull_secrets():
-    """
-we will fill it in later
-"""
-    secret_name = 'source_DB'
+def pull_secrets(secret_name = 'source_DB'):
+     """
+  we will fill it in later
+  """
     secrets_manager = boto3.client('secretsmanager')
 
     try:
@@ -305,9 +304,7 @@ def index(dotenv_path_string):
     add_updates(updates, bucketname)
 
 # Lambda handler
-
-
-def someting(event, context):
-    index('config/.env.development')
+def extract_lambda_handler(event={'dotenv_path_string': 'config/.env.development'}, context=None):
+    index(event['dotenv_path_string'])
     logger.info("Completed")
     print("done")

@@ -3,7 +3,7 @@ resource "aws_lambda_function" "extract_lambda" {
     runtime          = "python3.9"
     role             = aws_iam_role.lambda_role.arn
     # Name of the .py file with handler in goes below 
-    handler          = "extract.someting"
+    handler          = "extract.extract_lambda_handler"
     # Links to a zip file, not a bucket & object
     filename         = var.extract_archive_output_path
     source_code_hash = data.archive_file.extract_zip.output_base64sha256
