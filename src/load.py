@@ -96,18 +96,28 @@ def load_data_to_warehouse(secret_id, bucket_prefix):
         API_USER = details['user']
         API_PASS = details['password']
         API_DBASE = details['database']
+        API_SCHEMA = details['schema']
         conn_string = f'postgresql://{API_USER}:{API_PASS}@{API_HOST}/{API_DBASE}'
-        db = create_engine(conn_string)
-        conn = db.connect()
+        db_engine = create_engine(conn_string)
+        # conn = db.connect()
 
         for table in dfs:
             table_name = table[3:]
             print(f"Loading table {table_name}")
             table_as_dataframe = dfs[table]
-            table_as_dataframe.to_sql(table_name, con=conn, if_exists='append', index=False)
-
-        conn = psycopg2.connect(conn_string)
-        conn.autocommit = True
+            
+            table_as_dataframe.to_sql(
+                table_name,
+                schema=API_SCHEMA,
+                con=db_engine,
+                # Don't drop table if it exists
+                if_exists='append',
+                index=False,
+                # Lesser columns allow larger chunks
+                chunksize=1000,
+                # Allows writing rows in one go
+                method='multi'
+            )
 
         # with conn.cursor() as cursor:
         #     for table_name, df in dfs.items():
