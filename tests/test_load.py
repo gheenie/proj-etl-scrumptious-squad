@@ -1,6 +1,6 @@
 from unittest.mock import patch, Mock, MagicMock
 import unittest.mock as mock
-from src.load import pull_secrets,get_bucket_name, get_data, make_warehouse_connection, load_data_to_warehouse, lambda_handler
+from src.load import pull_secrets,get_bucket_name, get_data, make_warehouse_connection, load_data_to_warehouse, load_lambda_handler
 from moto import mock_s3, mock_secretsmanager
 import pytest
 import boto3
@@ -152,7 +152,7 @@ def test_lambda_handler(event, context):
     bucket.upload_file('test_data.parquet', 'data/parquet/test_data.parquet')
     with patch('src.load.get_data', return_value={'test_data': 'test_df'}), \
          patch('src.load.load_data_to_warehouse', return_value=True):
-        result = lambda_handler(event, context)
+        result = load_lambda_handler(event, context)
         assert result['statusCode'] == 200
         assert result['body'] == 'Data loaded into warehouse successfully'
 
@@ -179,7 +179,7 @@ def test_lambda_handler_invalid_secret_id():
         'secret_id': 'invalid-secret-id',
         'bucket_prefix': bucket_name
     }
-    result = lambda_handler(event, None)
+    result = load_lambda_handler(event, None)
     assert result['statusCode'] == 400
     assert result['body'] == 'Error: Failed to load data into warehouse'
 
@@ -204,7 +204,7 @@ def test_lambda_handler_invalid_bucket_prefix():
         'secret_id': secret_name,
         'bucket_prefix': 'invalid-bucket-prefix'
     }
-    result = lambda_handler(event, None)
+    result = load_lambda_handler(event, None)
     assert result['statusCode'] == 400
     assert result['body'] == 'Error: Failed to load data from S3 bucket'
 
