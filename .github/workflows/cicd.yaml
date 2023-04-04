@@ -48,7 +48,6 @@ jobs:
       # Performs a clean installation of all dependencies in the `requirements.txt` file
       - name: Install dependencies
         run: make dev-setup
-        working-directory: /home/runner
       # Seed the test Totesys database
       - run: PGPASSWORD=postgres psql -f ./extraction_test_db/test_db_setup/setup_test_db.sql -p 5432 -h localhost -U postgres
       # Seed the test Northcoders warehouse
