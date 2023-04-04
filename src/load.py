@@ -115,7 +115,7 @@ def load_data_to_warehouse(secret_id, bucket_prefix):
         return False
 
 
-def lambda_handler(event, context):
+def load_lambda_handler(event, context):
     try:
         # Retrieve the secret ID and bucket prefix from the event
         secret_id = event.get('secret_id')
@@ -129,7 +129,7 @@ def lambda_handler(event, context):
                 'body': 'Error: Failed to load data from S3 bucket'
             }
         
-        result = load_data_to_warehouse(secret_id, data)
+        result = load_data_to_warehouse(secret_id, bucket_prefix)
         if not result:
             return {
                 'statusCode': 400,
