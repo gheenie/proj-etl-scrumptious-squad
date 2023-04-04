@@ -20,18 +20,15 @@ logger.setLevel(logging.INFO)
 
 
 def pull_secrets(secret_name = 'source_DB'):
-     """
-  we will fill it in later
-  """
+    """
+    we will fill it in later
+    """
     secrets_manager = boto3.client('secretsmanager')
-
     try:
         response = secrets_manager.get_secret_value(SecretId=secret_name)
 
     except ClientError as error:
         error_code = error.response['Error']['Code']
-
-        print(error_code)
         if error_code == 'ResourceNotFoundException':
             raise Exception(f'ERROR: name not found') from error
         else:
@@ -39,20 +36,21 @@ def pull_secrets(secret_name = 'source_DB'):
     else:
         secrets = json.loads(response['SecretString'])
         details = {
-            'user': secrets['user'],
-            'password': secrets['password'],
-            'database': secrets['database'],
-            'host': secrets['host'],
-            'port': secrets['port']
+            'user': secrets['user'][0],
+            'password': secrets['password'][0],
+            'database': secrets['database'][0],
+            'host': secrets['host'][0],
+            'port': secrets['port'],
+            'schema': secrets['schema']
         }
-        print(details)
-        return details['user'], details['password'], details['database'], details['host'], details['port']
+        details_string = details[0], details[1], details[2], details[3], details[4], details[5]
+        return details_string
 
 
 def make_connection(dotenv_path_string):
     """
-we will fill it in later
-"""
+    we will fill it in later
+    """
     dotenv_path = Path(dotenv_path_string)
     load_dotenv(dotenv_path=dotenv_path)
 
@@ -75,8 +73,8 @@ we will fill it in later
 
 def get_titles(dbcur):
     """
-we will fill it in later
-"""
+    we will fill it in later
+    """
     sql = """SELECT table_name
     FROM information_schema.tables
     WHERE table_schema='public'
@@ -90,8 +88,8 @@ we will fill it in later
 
 def get_whole_table(dbcur, title):
     """
-we will fill it in later
-"""
+    we will fill it in later
+    """
     sql = f'SELECT * FROM {title[0]}'
     try:
         dbcur.execute(sql)
@@ -104,8 +102,8 @@ we will fill it in later
 
 def get_recents_table(dbcur, title, created, updated):
     """
-we will fill it in later
-"""
+    we will fill it in later
+    """
     first_condition = f"(created_at > '{created}'::timestamp)"
     second_condition = f"(last_updated > '{updated}'::timestamp)"
     sql = f"SELECT * FROM {title[0]} WHERE ({first_condition}) OR ({second_condition})"
@@ -120,20 +118,19 @@ we will fill it in later
 
 def get_file_info_in_bucket(bucketname):
     """
-we will fill it in later
-"""
+    we will fill it in later
+    """
     try:
         s3_client = boto3.client('s3')
         return s3_client.list_objects_v2(Bucket=bucketname)
     except Exception as error:
-        raise Exception(
-            f"ERROR CHECKING OBJECTS IN BUCKET: {error}") from error
+        raise Exception(f"ERROR CHECKING OBJECTS IN BUCKET: {error}") from error
 
 
 def get_bucket_name(bucket_prefix):
     """
-we will fill it in later
-"""
+    we will fill it in later
+    """
     s3_client = boto3.client('s3')
     try:
         response = s3_client.list_buckets()
@@ -147,8 +144,8 @@ we will fill it in later
 
 def check_table_in_bucket(title, response):
     """
-we will fill it in later
-"""
+    we will fill it in later
+    """
     if response['KeyCount'] == 0:
         return False
     filename = f"{title[0]}.parquet"
@@ -158,8 +155,8 @@ we will fill it in later
 
 def get_parquet(title, bucketname, response):
     """
-we will fill it in later
-"""
+    we will fill it in later
+    """
     filename = f"{title}.parquet"
     if response['KeyCount'] == 0:
         return False
@@ -170,7 +167,6 @@ we will fill it in later
         client_object = client.Object(bucketname, filename)
         client_object.download_fileobj(buffer)
         data_frame = pd.read_parquet(buffer)
-
         return data_frame
 
 
@@ -185,7 +181,7 @@ def get_most_recent_time(title, bucketname, response):
     compile a sorted list of 'last_updated' values and another sorted list of 'created_at' values 
     existing inside previous readings
 
-"""
+    """
     updates = []
     creations = []
     table = get_parquet(title[0], bucketname, response)
