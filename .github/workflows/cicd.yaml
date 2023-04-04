@@ -48,8 +48,6 @@ jobs:
       # Performs a clean installation of all dependencies in the `requirements.txt` file
       - name: Install dependencies
         run: make dev-setup
-      # Setup postgreSQL
-      - run: touch .pgpass && echo 'localhost:5432:*:postgres:postgres' >> .pgpass && chmod 0600 .pgpass
         working-directory: /home/runner
       # Seed the test Totesys database
       - run: PGPASSWORD=postgres psql -f ./extraction_test_db/test_db_setup/setup_test_db.sql -p 5432 -h localhost -U postgres
