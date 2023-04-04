@@ -52,13 +52,6 @@ jobs:
       - name: Install dependencies and run checks
         # run: make all
         run: make dev-setup
-      # Run pytest itself instead of using make.
-      # - name: Activate virtual env
-      #   run: source venv/bin/activate
-      # - name: Set the root of project as PYTHONPATH
-      #   run: export PYTHONPATH=$(pwd)
-      # - name: Run tests
-      #   run: pytest tests/test_extract.py
       - run: make unit-test
         # Environment variables used by the test script to create
         # and use seed databases.
