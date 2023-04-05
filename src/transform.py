@@ -166,7 +166,7 @@ def create_fact_sales_order(df_s):
     Create fact_sales_order
     """
     fact_s = pd.DataFrame()
-    fact_s.insert(0, "sales_record_id", range(1, 1 + len(df_s)))
+    # fact_s.insert(0, "sales_record_id", range(1, 1 + len(df_s)))
     fact_s["sales_order_id"] = df_s["sales_order_id"]
     fact_s[["created_date", "created_time"]] = df_s["created_at"].apply(
         lambda x: pd.Series(str(x).split(" ")))
@@ -177,7 +177,7 @@ def create_fact_sales_order(df_s):
     fact_s["sales_staff_id"] = df_s["staff_id"]
     fact_s["counterparty_id"] = df_s["counterparty_id"]
     fact_s["units_sold"] = df_s["units_sold"]
-    fact_s["unit_price"] = df_s["unit_price"]
+    fact_s["unit price"] = df_s["unit_price"]
     fact_s["currency_id"] = df_s["currency_id"]
     fact_s["design_id"] = df_s["design_id"]
     fact_s["agreed_payment_date"] = df_s["agreed_payment_date"]
@@ -191,8 +191,8 @@ def create_fact_purchase_order(df_p):
     Create fact_purchase_order
     """
     fact_p = pd.DataFrame()
-    fact_p.insert(
-        0, "purchase_record_id", range(1, 1 + len(df_p)))
+    # fact_p.insert(
+    #     0, "purchase_record_id", range(1, 1 + len(df_p)))
     fact_p["purchase_order_id"] = df_p["purchase_order_id"]
     fact_p[["created_date", "created_time"]] = df_p["created_at"].apply(
         lambda x: pd.Series(str(x).split(" ")))
@@ -217,12 +217,12 @@ def create_fact_payment(df_pay):
     Create fact_payment
     """
     fact_pay = pd.DataFrame()
-    fact_pay.insert(0, "payment_record_id", range(1, 1 + len(df_pay)))
+    # fact_pay.insert(0, "payment_record_id", range(1, 1 + len(df_pay)))
     fact_pay["payment_id"] = df_pay["payment_id"]
     fact_pay[["created_date", "created_time"]] = df_pay["created_at"].apply(
         lambda x: pd.Series(str(x).split(" ")))
     str1 = "last_updated_date"
-    str2 = "last_updated_time"
+    str2 = "last_updated"
     fact_pay[[str1, str2]] = df_pay["last_updated"].apply(
         lambda x: pd.Series(str(x).split(" ")))
     fact_pay["transaction_id"] = df_pay["transaction_id"]
@@ -287,7 +287,7 @@ def transform():
     fact_sales_order = {
         'fact_sales_order': create_fact_sales_order(df_sales_order)}
     fact_purchase_order = {
-        'fact_purchase_order': create_fact_purchase_order(df_purchase_order)}
+        'fact_purchase_orders': create_fact_purchase_order(df_purchase_order)}
     fact_payment = {'fact_payment': create_fact_payment(df_payment)}
 
     """
@@ -304,17 +304,17 @@ def transform():
     push_to_cloud(dim_transaction)
     push_to_cloud(dim_payment_type)
     push_to_cloud(fact_sales_order)
-    push_to_cloud(fact_purchase_orders)
+    push_to_cloud(fact_purchase_order)
     push_to_cloud(fact_payment)
 
 # transform()
 
+
 # Lambda handler
-
-
-def something(event, context):
+def transform_lambda_handler(event, context):
     """
     Fully integrated all subfunctions
     """
+
     transform()
     # logger.info("Completed")
