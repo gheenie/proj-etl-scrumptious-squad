@@ -172,7 +172,7 @@ def test_get_file_info_in_bucket_and_check_table_in_bucket(mock_bucket):
 
     for title in tables:
         # Check if the table name is among the response JSON's files
-        assert check_table_in_bucket(title, response) == False
+        assert check_table_in_bucket(title, response) is False
 
 
 def test_get_file_info_in_bucket_and_check_keys_exist(mock_bucket, premock_s3):
@@ -212,9 +212,9 @@ def test_get_file_info_in_bucket_and_check_keys_exist(mock_bucket, premock_s3):
     for title in tables:
         # Check if the table name is among the response JSON's files
         if title in [['design'], ['sales_order']]:
-            assert check_table_in_bucket(title, response) == True
+            assert check_table_in_bucket(title, response) is True
         else:
-            assert check_table_in_bucket(title, response) == False
+            assert check_table_in_bucket(title, response) is False
 
 
 def test_get_table_and_check_each_table__no_files_exist_yet(mock_bucket):
