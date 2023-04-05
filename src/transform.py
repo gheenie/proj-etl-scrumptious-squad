@@ -304,7 +304,7 @@ def transform():
     push_to_cloud(dim_transaction)
     push_to_cloud(dim_payment_type)
     push_to_cloud(fact_sales_order)
-    push_to_cloud(fact_purchase_order)
+    push_to_cloud(fact_purchase_orders)
     push_to_cloud(fact_payment)
 
 # transform()

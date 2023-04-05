@@ -31,7 +31,7 @@ def pull_secrets(secret_id="source_DB"):
         if error.response['Error']['Code'] == 'ResourceNotFoundException':
             raise ValueError(f"Secret id:{secret_id} doesn't exist") from error
         else:
-            raise Exception(f'ERROR : {error_code}')
+            raise Exception(f'ERROR : {error}')
     else:
         secrets = json.loads(response['SecretString'])
         details = {
