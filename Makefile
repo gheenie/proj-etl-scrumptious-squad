@@ -41,7 +41,6 @@ check-coverage:
 unit-test:
 	$(ACTIVATE_ENV) && PYTHONPATH=$(PYTHONPATH) python -m pytest -v src tests
 
-
 # Run all checks
 run-checks: security-test run-flake unit-test check-coverage
 

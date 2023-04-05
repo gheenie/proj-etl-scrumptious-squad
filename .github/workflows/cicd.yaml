@@ -54,7 +54,7 @@ jobs:
       # Performs a clean installation of all dependencies in the `requirements.txt` file
       # and other dependencies specified in the Makefile
       - name: Install dependencies
-        run: make dev-setup
+        run: make requirements
       # Seed the test Totesys database using the service container's credentials
       - name: Seed Totesys database
         run: PGPASSWORD=postgres psql -f ./extraction_test_db/test_db_setup/setup_test_db.sql -p 5432 -h localhost -U postgres
