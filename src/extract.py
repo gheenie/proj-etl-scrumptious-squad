@@ -31,9 +31,23 @@ def pull_secrets(secret_id="source_DB"):
         if error.response['Error']['Code'] == 'ResourceNotFoundException':
             raise ValueError(f"Secret id:{secret_id} doesn't exist") from error
         else:
-            raise error
-    secret_text = json.loads(response["SecretString"])
-    return secret_text
+            raise Exception(f'ERROR : {error_code}')
+    else:
+        secrets = json.loads(response['SecretString'])
+        details = {
+            'user': secrets['user'],
+            'password': secrets['password'],
+            'database': secrets['database'],
+            'host': secrets['host'],
+            'port': secrets['port']
+        }
+        return (
+            details['database'],
+            details['user'],
+            details['password'],
+            details['host'],
+            details['port']
+        )
 
 
 def make_connection(dotenv_path_string):

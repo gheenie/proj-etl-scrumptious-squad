@@ -166,7 +166,7 @@ def create_fact_sales_order(df_s):
     Create fact_sales_order
     """
     fact_s = pd.DataFrame()
-    fact_s.insert(0, "sales_record_id", range(1, 1 + len(df_s)))
+    # fact_s.insert(0, "sales_record_id", range(1, 1 + len(df_s)))
     fact_s["sales_order_id"] = df_s["sales_order_id"]
     fact_s[["created_date", "created_time"]] = df_s["created_at"].apply(
         lambda x: pd.Series(str(x).split(" ")))
@@ -191,8 +191,8 @@ def create_fact_purchase_order(df_p):
     Create fact_purchase_order
     """
     fact_p = pd.DataFrame()
-    fact_p.insert(
-        0, "purchase_record_id", range(1, 1 + len(df_p)))
+    # fact_p.insert(
+    #     0, "purchase_record_id", range(1, 1 + len(df_p)))
     fact_p["purchase_order_id"] = df_p["purchase_order_id"]
     fact_p[["created_date", "created_time"]] = df_p["created_at"].apply(
         lambda x: pd.Series(str(x).split(" ")))
@@ -217,7 +217,7 @@ def create_fact_payment(df_pay):
     Create fact_payment
     """
     fact_pay = pd.DataFrame()
-    fact_pay.insert(0, "payment_record_id", range(1, 1 + len(df_pay)))
+    # fact_pay.insert(0, "payment_record_id", range(1, 1 + len(df_pay)))
     fact_pay["payment_id"] = df_pay["payment_id"]
     fact_pay[["created_date", "created_time"]] = df_pay["created_at"].apply(
         lambda x: pd.Series(str(x).split(" ")))
@@ -273,7 +273,7 @@ def transform():
     """
     Converts dataframes to dictionaries
     """
-    dim_date = {'dim_date': create_dim_date('2022-01-01', '2050-01-01')}
+    dim_date = {'dim_date': create_dim_date('2022-01-01', '2024-01-01')}
     dim_location = {'dim_location': create_dim_location(df_address)}
     dim_design = {'dim_design': create_dim_design(df_design)}
     dim_currency = {'dim_currency': create_dim_currency(df_currency)}
@@ -304,17 +304,17 @@ def transform():
     push_to_cloud(dim_transaction)
     push_to_cloud(dim_payment_type)
     push_to_cloud(fact_sales_order)
-    push_to_cloud(fact_purchase_orders)
+    push_to_cloud(fact_purchase_order)
     push_to_cloud(fact_payment)
 
 # transform()
 
+
 # Lambda handler
-
-
-def something(event, context):
+def transform_lambda_handler(event, context):
     """
     Fully integrated all subfunctions
     """
+
     transform()
     # logger.info("Completed")

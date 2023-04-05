@@ -98,7 +98,7 @@ def load_data_to_warehouse(secret_id, bucket_prefix):
             table_name = table[3:]
             logger.info(f"Loading table {table_name}")
             table_as_dataframe = dfs[table]
-            logger.debug(f"DataFrame for {table_name}: {table_as_dataframe}")
+            # logger.debug(f"DataFrame for {table_name}: {table_as_dataframe}")
             table_as_dataframe.to_sql(
                 table_name,
                 schema=schema,
