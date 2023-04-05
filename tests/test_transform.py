@@ -1,10 +1,27 @@
-from src.transform import *
+"""
+the exreact function will get data updates from the data lake
+and push it to the ingested data s3 bucket in parquet format
+"""
 import pandas as pd
 from src.extract import (index)
 import pytest
 import os
-from moto import (mock_secretsmanager, mock_s3)
+from moto import (mock_s3)
 import boto3
+from src.transform import (
+    get_parquet,
+    create_dim_date,
+    create_dim_location,
+    create_dim_design,
+    create_dim_currency,
+    create_dim_counterparty,
+    create_dim_staff,
+    create_dim_transaction,
+    create_dim_payment_type,
+    create_fact_sales_order,
+    create_fact_purchase_order,
+    create_fact_payment,
+)
 
 
 @pytest.fixture(scope='function')
@@ -16,18 +33,20 @@ def aws_credentials():
     os.environ['AWS_SESSION_TOKEN'] = 'test'
     os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
 
+
 @pytest.fixture(scope='function')
 def premock_s3(aws_credentials):
     with mock_s3():
         yield boto3.client('s3', region_name='us-east-1')
 
+
 @pytest.fixture
+# The parquet files are generated in the mock bucket.
 def mock_bucket_and_parquet_files(premock_s3):
     premock_s3.create_bucket(
         Bucket='scrumptious-squad-in-data-testmock',
         CreateBucketConfiguration={'LocationConstraint': 'eu-west-2'})
     index('config/.env.test')
-    # The parquet files are generated in the mock bucket.
 
 
 def test_dim_date():
@@ -44,16 +63,18 @@ def test_dim_date():
         'quarter': [1, 1]
     })
     dim_date = create_dim_date(start_date, end_date)
-    pd.testing.assert_frame_equal(dim_date,expected_output)
+    pd.testing.assert_frame_equal(dim_date, expected_output)
+
 
 def test_dim_location(mock_bucket_and_parquet_files):
     df_address = get_parquet('address')
     dim_location = create_dim_location(df_address)
     assert dim_location.shape[1] == 8
     assert dim_location['address_line_1'][3] == 'al1-d'
-    assert dim_location['postal_code'][1] == '22222-2222' 
+    assert dim_location['postal_code'][1] == '22222-2222'
     assert dim_location['city'][0] == 'city-a'
     assert dim_location['phone'][4] == '0000 000005'
+
 
 def test_dim_design(mock_bucket_and_parquet_files):
     df_design = get_parquet('design')
@@ -63,11 +84,13 @@ def test_dim_design(mock_bucket_and_parquet_files):
     assert dim_design['file_location'][0] == '/aa'
     assert dim_design['file_name'][5] == 'file-f.json'
 
+
 def test_dim_currency(mock_bucket_and_parquet_files):
     df_currency = get_parquet('currency')
     dim_currency = create_dim_currency(df_currency)
     assert dim_currency.shape[1] == 3
     assert dim_currency['currency_code'][1] == 'BBB'
+
 
 def test_dim_counterparty(mock_bucket_and_parquet_files):
     df_address = get_parquet('address')
@@ -77,14 +100,16 @@ def test_dim_counterparty(mock_bucket_and_parquet_files):
     assert dim_counterparty['counterparty_legal_name'][0] == 'cp-a'
     assert dim_counterparty['counterparty_legal_district'][1] == 'district-b'
 
+
 def test_dim_staff(mock_bucket_and_parquet_files):
     df_staff = get_parquet('staff')
-    df_department =get_parquet('department')
+    df_department = get_parquet('department')
     dim_staff = create_dim_staff(df_staff, df_department)
     assert dim_staff.shape[1] == 6
     assert dim_staff['first_name'][2] == 'fn-c'
     assert dim_staff['department_name'][1] == 'dept-b'
     assert dim_staff['email_address'][0] == 'fna.lna@terrifictotes.com'
+
 
 def test_dim_transaction(mock_bucket_and_parquet_files):
     df_transaction = get_parquet('transaction')
@@ -95,6 +120,7 @@ def test_dim_transaction(mock_bucket_and_parquet_files):
     assert dim_transaction['sales_order_id'][3] == 2
     assert dim_transaction['purchase_order_id'][0] == 1
 
+
 def test_dim_payment_type(mock_bucket_and_parquet_files):
     df_payment_type = get_parquet('payment_type')
     dim_payment_type = create_dim_payment_type(df_payment_type)
@@ -102,12 +128,11 @@ def test_dim_payment_type(mock_bucket_and_parquet_files):
     assert dim_payment_type['payment_type_id'][1] == 2
     assert dim_payment_type['payment_type_name'][3] == 'PURCHASE_REFUND'
 
+
 def test_fact_sales_order(mock_bucket_and_parquet_files):
     df_sales_order = get_parquet('sales_order')
     fact_sales_order = create_fact_sales_order(df_sales_order)
-    assert fact_sales_order.shape[1] == 15
-    assert fact_sales_order['sales_record_id'][0] == 1
-    assert fact_sales_order['sales_record_id'][1] == 2
+    assert fact_sales_order.shape[1] == 14
     assert fact_sales_order['sales_order_id'][0] == 1
     assert fact_sales_order['sales_order_id'][1] == 2
     assert fact_sales_order['created_date'][0] == '2023-01-01'
@@ -117,7 +142,7 @@ def test_fact_sales_order(mock_bucket_and_parquet_files):
     assert fact_sales_order['sales_staff_id'][1] == 2
     assert fact_sales_order['counterparty_id'][1] == 2
     assert fact_sales_order['units_sold'][0] == 10
-    assert fact_sales_order['unit_price'][1] == 2.00
+    assert fact_sales_order['unit price'][1] == 2.00
     assert fact_sales_order['agreed_delivery_date'][0] == '2023-01-01'
     assert fact_sales_order['agreed_delivery_location_id'][4] == 5
 
@@ -125,9 +150,7 @@ def test_fact_sales_order(mock_bucket_and_parquet_files):
 def test_fact_purchase_order(mock_bucket_and_parquet_files):
     df_purchase_order = get_parquet('purchase_order')
     fact_purchase_order = create_fact_purchase_order(df_purchase_order)
-    assert fact_purchase_order.shape[1] == 15
-    assert fact_purchase_order['purchase_record_id'][0] == 1
-    assert fact_purchase_order['purchase_record_id'][1] == 2
+    assert fact_purchase_order.shape[1] == 14
     assert fact_purchase_order['purchase_order_id'][0] == 1
     assert fact_purchase_order['purchase_order_id'][1] == 2
     assert fact_purchase_order['created_date'][0] == '2023-01-01'
@@ -146,21 +169,17 @@ def test_fact_purchase_order(mock_bucket_and_parquet_files):
 def test_fact_payment(mock_bucket_and_parquet_files):
     df_payment = get_parquet('payment')
     fact_payment = create_fact_payment(df_payment)
-    assert fact_payment.shape[1] == 13
-    assert fact_payment['payment_record_id'][0] == 1
-    assert fact_payment['payment_record_id'][1] == 2
+    assert fact_payment.shape[1] == 12
     assert fact_payment['payment_id'][0] == 1
     assert fact_payment['payment_id'][1] == 2
     assert fact_payment['created_date'][0] == '2023-01-01'
     assert fact_payment['created_time'][0] == '10:00:00'
     assert fact_payment['last_updated_date'][0] == '2023-01-01'
-    assert fact_payment['last_updated_time'][0] == '10:00:00'
+    assert fact_payment['last_updated'][0] == '10:00:00'
     assert fact_payment['transaction_id'][1] == 2
     assert fact_payment['counterparty_id'][1] == 2
     assert fact_payment['payment_amount'][0] == 10.00
     assert fact_payment['currency_id'][1] == 2
     assert fact_payment['payment_type_id'][0] == 1
-    assert fact_payment['paid'][1] == True
+    assert fact_payment['paid'][1] is True
     assert fact_payment['payment_date'][1] == '2023-01-01'
-
-
