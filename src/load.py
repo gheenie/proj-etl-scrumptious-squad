@@ -72,7 +72,7 @@ def get_data(bucket_prefix):
             buffer = io.BytesIO(obj['Body'].read())
             table = pq.read_table(buffer)
             data_frame = table.to_pandas()
-            dfs[f"data_frame_{filename}"] = data_frame
+            dfs[f"df_{filename}"] = data_frame
         return dfs
 
     except ClientError as error:
@@ -101,7 +101,7 @@ def load_data_to_warehouse(secret_id, bucket_prefix):
             table_name = table[3:]
             logger.info(f"Loading table {table_name}")
             table_as_dataframe = dfs[table]
-            logger.debug(f"DataFrame for {table_name}: {table_as_dataframe}")
+            # logger.debug(f"DataFrame for {table_name}: {table_as_dataframe}")
             table_as_dataframe.to_sql(
                 table_name,
                 schema=API_SCHEMA,
