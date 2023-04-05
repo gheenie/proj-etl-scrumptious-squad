@@ -286,7 +286,7 @@ def transform():
         'dim_payment_type': create_dim_payment_type(df_payment_type)}
     fact_sales_order = {
         'fact_sales_order': create_fact_sales_order(df_sales_order)}
-    fact_purchase_order = {
+    fact_purchase_orders = {
         'fact_purchase_order': create_fact_purchase_order(df_purchase_order)}
     fact_payment = {'fact_payment': create_fact_payment(df_payment)}
 

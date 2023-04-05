@@ -5,16 +5,14 @@ and load to data warehouse
 
 import io
 import json
-import pyarrow.parquet as pq
-import boto3
-import pg8000
 import logging
+import boto3
+import pyarrow.parquet as pq
 from botocore.exceptions import ClientError
 from sqlalchemy import create_engine
 
 logger = logging.getLogger('mylogger')
 logger.setLevel(logging.INFO)
-
 
 
 def pull_secrets(secret_id):
@@ -80,7 +78,6 @@ def get_data(bucket_prefix):
         return []
 
 
-    
 def load_data_to_warehouse(secret_id, bucket_prefix):
     try:
         dfs = get_data(bucket_prefix)
@@ -88,13 +85,13 @@ def load_data_to_warehouse(secret_id, bucket_prefix):
             return False
         # Pulls secrets but doesn't connect to the warehouse yet
         details = pull_secrets(secret_id)
-        API_HOST = details['host']
-        API_USER = details['user']
-        API_PASS = details['password']
-        API_DBASE = details['database']
-        API_SCHEMA = details['schema']
+        host = details['host']
+        user = details['user']
+        pword = details['password']
+        dbase = details['database']
+        schema = details['schema']
         # Specifies postgreSQL as the database, then its config
-        conn_string = f'postgresql://{API_USER}:{API_PASS}@{API_HOST}/{API_DBASE}'
+        conn_string = f'postgresql://{user}:{pword}@{host}/{dbase}'
         db_engine = create_engine(conn_string)
 
         for table in dfs:
@@ -104,7 +101,7 @@ def load_data_to_warehouse(secret_id, bucket_prefix):
             logger.debug(f"DataFrame for {table_name}: {table_as_dataframe}")
             table_as_dataframe.to_sql(
                 table_name,
-                schema=API_SCHEMA,
+                schema=schema,
                 con=db_engine,
                 if_exists='append',
                 index=False,

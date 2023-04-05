@@ -20,30 +20,20 @@ logger = logging.getLogger('MyLogger')
 logger.setLevel(logging.INFO)
 
 
-def pull_secrets(secret_name='source_DB'):
+def pull_secrets(secret_id="source_DB"):
     """
     Retrieves the secret from SecretManager
     """
-    secrets_manager = boto3.client('secretsmanager')
+    secret_manager = boto3.client("secretsmanager")
     try:
-        response = secrets_manager.get_secret_value(SecretId=secret_name)
-
+        response = secret_manager.get_secret_value(SecretId=secret_id)
     except ClientError as error:
-        error_code = error.response['Error']['Code']
-        if error_code == 'ResourceNotFoundException':
-            raise Exception('ERROR: name not found') from error
+        if error.response['Error']['Code'] == 'ResourceNotFoundException':
+            raise ValueError(f"Secret id:{secret_id} doesn't exist") from error
         else:
-            raise Exception(f'ERROR : {error_code}')
-    else:
-        secrets = json.loads(response['SecretString'])
-        details = {
-            'user': secrets['user'],
-            'password': secrets['password'],
-            'database': secrets['database'],
-            'host': secrets['host'],
-            'port': secrets['port']
-        }
-        return details['database'], details['user'], details['password'], details['host'], details['port']
+            raise error
+    secret_text = json.loads(response["SecretString"])
+    return secret_text
 
 
 def make_connection(dotenv_path_string):
@@ -54,13 +44,13 @@ def make_connection(dotenv_path_string):
     load_dotenv(dotenv_path=dotenv_path)
 
     if dotenv_path_string.endswith('development'):
-        database, user, password, host, port = pull_secrets()
+        details = pull_secrets()
         conn = pg8000.connect(
-            database=database,
-            user=user,
-            password=password,
-            host=host,
-            port=port)
+            database=details['database'],
+            user=details['user'],
+            password=details['password'],
+            host=details['host'],
+            port=details['port'])
     elif dotenv_path_string.endswith('test'):
         conn = pg8000.connect(
             database=os.getenv('database'),
