@@ -15,7 +15,7 @@ from src.extract import (
     check_table_in_bucket,
     check_each_table,
     add_updates,
-    index,
+    extract_lambda_handler,
     get_parquet,
     get_most_recent_time,
     get_file_info_in_bucket
@@ -326,7 +326,7 @@ def test_get_parquet_returns_the_correct_dataframe(mock_bucket, premock_s3):
     """
 
     # Execute extraction once with the seeded Totesys database
-    index('config/.env.test')
+    extract_lambda_handler({'dotenv_path_string': 'config/.env.test'})
     # Get full bucket name from a prefix
     bucketname = get_bucket_name('scrumptious-squad-in-data-')
     # Get the response JSON from listing an S3 bucket's contents
@@ -366,7 +366,7 @@ def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_last_
     """
 
     # Execute extraction once with the seeded Totesys database
-    index('config/.env.test')
+    extract_lambda_handler({'dotenv_path_string': 'config/.env.test'})
     # Get full bucket name from a prefix
     bucketname = get_bucket_name('scrumptious-squad-in-data-')
     # Get the response JSON from listing an S3 bucket's contents
@@ -412,7 +412,7 @@ def test_get_most_recent_time_returns_correct_values__most_recent_entry_is_not_l
     # Patch connections in this and imported modules to use the updated seed Totesys database
     mock_connection.return_value = conn
     # Execute extraction once with the updated seed Totesys database
-    index('config/.env.test')
+    extract_lambda_handler({'dotenv_path_string': 'config/.env.test'})
     # Get full bucket name from a prefix
     bucketname = get_bucket_name('scrumptious-squad-in-data-')
     # Get the response JSON from listing an S3 bucket's contents
@@ -439,7 +439,7 @@ def test_get_table_and_check_each_table__new_and_no_incoming_data__files_exist(m
     """
 
     # Execute extraction once with the seeded Totesys database
-    index('config/.env.test')
+    extract_lambda_handler({'dotenv_path_string': 'config/.env.test'})
 
     # Insert new entries into the seed Totesys database
     conn = make_connection('config/.env.test')
@@ -508,7 +508,7 @@ def test_push_to_cloud_and_add_updates__new_and_no_incoming_data__files_exist(mo
     """
 
     # Execute extraction once with the default seed Totesys database
-    index('config/.env.test')
+    extract_lambda_handler({'dotenv_path_string': 'config/.env.test'})
 
     # Insert new entries into the seed Totesys database
     conn = make_connection('config/.env.test')
