@@ -18,7 +18,7 @@ resource "aws_lambda_function" "transform_lambda" {
     runtime          = "python3.9"
     role             = aws_iam_role.lambda_role.arn
     # Name of the .py file with handler in goes below 
-    handler          = "transform.something"
+    handler          = "transform.transform_lambda_handler"
     # Links to a zip file, not a bucket & object
     filename         = var.transform_archive_output_path
     source_code_hash = data.archive_file.transform_zip.output_base64sha256
