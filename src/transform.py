@@ -49,15 +49,15 @@ def create_dim_date(start_date, end_date):
     """
     date_range = pd.date_range(start=start_date, end=end_date, freq='D')
     dim_date = pd.DataFrame(date_range, columns=['date_id'])
-    dim_date['year'] = dim_date['date_id'].dt.year
-    dim_date['month'] = dim_date['date_id'].dt.month
-    dim_date['day'] = dim_date['date_id'].dt.day
+    dim_date['year'] = dim_date['date_id'].dt.year.astype('int64')
+    dim_date['month'] = dim_date['date_id'].dt.month.astype('int64')
+    dim_date['day'] = dim_date['date_id'].dt.day.astype('int64')
     dim_date['day_of_week'] = dim_date['date_id'].dt.isocalendar().day
     dim_date['day_of_week'] = pd.to_numeric(
         dim_date['day_of_week'], errors="coerce").astype('int64')
     dim_date['day_name'] = dim_date['date_id'].dt.day_name()
     dim_date['month_name'] = dim_date['date_id'].dt.strftime('%B')
-    dim_date['quarter'] = dim_date['date_id'].dt.quarter
+    dim_date['quarter'] = dim_date['date_id'].dt.quarter.astype('int64')
     return dim_date
 
 
@@ -177,7 +177,7 @@ def create_fact_sales_order(df_s):
     fact_s["sales_staff_id"] = df_s["staff_id"]
     fact_s["counterparty_id"] = df_s["counterparty_id"]
     fact_s["units_sold"] = df_s["units_sold"]
-    fact_s["unit_price"] = df_s["unit_price"]
+    fact_s["unit price"] = df_s["unit_price"]
     fact_s["currency_id"] = df_s["currency_id"]
     fact_s["design_id"] = df_s["design_id"]
     fact_s["agreed_payment_date"] = df_s["agreed_payment_date"]
@@ -222,7 +222,7 @@ def create_fact_payment(df_pay):
     fact_pay[["created_date", "created_time"]] = df_pay["created_at"].apply(
         lambda x: pd.Series(str(x).split(" ")))
     str1 = "last_updated_date"
-    str2 = "last_updated_time"
+    str2 = "last_updated"
     fact_pay[[str1, str2]] = df_pay["last_updated"].apply(
         lambda x: pd.Series(str(x).split(" ")))
     fact_pay["transaction_id"] = df_pay["transaction_id"]
