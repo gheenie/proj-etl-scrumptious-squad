@@ -273,7 +273,7 @@ def transform():
     """
     Converts dataframes to dictionaries
     """
-    dim_date = {'dim_date': create_dim_date('2022-01-01', '2050-01-01')}
+    dim_date = {'dim_date': create_dim_date('2022-01-01', '2024-01-01')}
     dim_location = {'dim_location': create_dim_location(df_address)}
     dim_design = {'dim_design': create_dim_design(df_design)}
     dim_currency = {'dim_currency': create_dim_currency(df_currency)}
