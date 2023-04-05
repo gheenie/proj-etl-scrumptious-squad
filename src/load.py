@@ -72,7 +72,7 @@ def get_data(bucket_prefix):
             buffer = io.BytesIO(obj['Body'].read())
             table = pq.read_table(buffer)
             data_frame = table.to_pandas()
-            dfs[f"data_frame_{filename}"] = data_frame
+            dfs[f"df_{filename}"] = data_frame
         return dfs
 
     except ClientError as error:
