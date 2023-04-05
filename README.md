@@ -8,18 +8,18 @@
 ```sh
 pyenv versions
 ```
-We should be using pyenv version 3.11.1 as stated in `.python_version`, if 
+We should be using pyenv version 3.9.7 as stated in `.python-version`, if 
 the version is not found please install and set up as the local:
 ```sh
-pyenv install 3.11.1
+pyenv install 3.9.7
 ```
 ```sh
-pyenv local 3.11.1
+pyenv local 3.9.7
 ```
 
 <br />
 
-2. Install Make.
+2. Install Make
 
 On Linux, run:
 ```
@@ -30,7 +30,8 @@ sudo apt install make -y
 
 3. Install dependencies, check code safety and coverage, and run tests with:
 ```sh
-make all
+make dev-setup
+make run-checks
 ```
 
 <br />
@@ -64,6 +65,49 @@ make all
     2. Name the second AWS_SECRET_KEY, and in its contents copy-paste your AWS secret key.
 
 <br />
+
+7. Setup the seed Totesys database and Northcoders warehouse by running these two scripts from the PROJECT ROOT:
+```sh
+./extraction_test_db/run_seed_ext_test_db.sh
+./load_test_warehouse_setup/run_seed_load_test_warehouse.sh
+```
+
+<br />
+
+8. Create .env files to store your database credentials in a hidden way. Development credentials will be uploaded to AWS SecretsManager in the next step, which is required for the actual apps to work. Test .env files is required for tests
+    1. For seed Totesys credentials, run the following from PROJECT ROOT, replacing the capitalised variables with your credentials:
+    ```sh
+    mkdir -p config
+    touch config/.env.test
+    echo 'database=SEED_TOTESYS_DATABASE_NAME' >> config/.env.test
+    echo 'user=YOUR_LOCAL_POSTGRES_USERNAME' >> config/.env.test
+    echo 'password=YOUR_LOCAL_POSTGRES_PASSWORD' >> config/.env.test
+
+    ```
+    2. For actual Totesys database credentials, run the following from PROJECT ROOT, replacing the capitalised variables with your credentials:
+    ```sh
+    mkdir -p config
+    touch config/.env.development
+    echo 'database=ACTUAL_TOTESYS_DATABASE_NAME' >> config/.env.development
+    echo 'user=TOTESYS_USERNAME' >> config/.env.development
+    echo 'password=TOTESYS_PASSWORD' >> config/.env.development
+    echo 'host=TOTESYS_HOST' >> config/.env.development
+    echo 'port=TOTESYS_PORT' >> config/.env.development
+
+    ```
+    3. For actual Northcoders warehouse credentials, run the following from PROJECT ROOT, replacing the capitalised variables with your credentials:
+    ```sh
+    mkdir -p config
+    touch config/.env.warehouse
+    echo 'database=ACTUAL_NORTHCODERS_DATABASE_NAME' >> config/.env.warehouse
+    echo 'user=NORTHCODERS_WAREHOUSE_USERNAME' >> config/.env.warehouse
+    echo 'password=NORTHCODERS_WAREHOUSE_PASSWORD' >> config/.env.warehouse
+    echo 'host=NORTHCODERS_WAREHOUSE_HOST' >> config/.env.warehouse
+    echo 'port=NORTHCODERS_WAREHOUSE_PORT' >> config/.env.warehouse
+    
+    ```
+
+9. 
 
 ## When working with the repo:
 
