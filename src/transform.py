@@ -314,7 +314,7 @@ def transform():
 
 def something(event, context):
     """
-    Lambda handler
+    Fully integrated all subfunctions
     """
     transform()
     # logger.info("Completed")
