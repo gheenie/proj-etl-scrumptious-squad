@@ -4,6 +4,8 @@ resource "null_resource" "install_dependencies" {
             pip install pg8000 -t ./../data/src_extract
             pip install python-dotenv -t ./../data/src_extract
             pip install python-dotenv -t ./../data/src_load
+            pip install sqlalchemy -t ./../data/src_load
+            pip install psycopg2-binary -t ./../data/src_load
             EOT
     }
 
