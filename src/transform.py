@@ -49,15 +49,15 @@ def create_dim_date(start_date, end_date):
     """
     date_range = pd.date_range(start=start_date, end=end_date, freq='D')
     dim_date = pd.DataFrame(date_range, columns=['date_id'])
-    dim_date['year'] = dim_date['date_id'].dt.year
-    dim_date['month'] = dim_date['date_id'].dt.month
-    dim_date['day'] = dim_date['date_id'].dt.day
+    dim_date['year'] = dim_date['date_id'].dt.year.astype('int64')
+    dim_date['month'] = dim_date['date_id'].dt.month.astype('int64')
+    dim_date['day'] = dim_date['date_id'].dt.day.astype('int64')
     dim_date['day_of_week'] = dim_date['date_id'].dt.isocalendar().day
     dim_date['day_of_week'] = pd.to_numeric(
         dim_date['day_of_week'], errors="coerce").astype('int64')
     dim_date['day_name'] = dim_date['date_id'].dt.day_name()
     dim_date['month_name'] = dim_date['date_id'].dt.strftime('%B')
-    dim_date['quarter'] = dim_date['date_id'].dt.quarter
+    dim_date['quarter'] = dim_date['date_id'].dt.quarter.astype('int64')
     return dim_date
 
 
@@ -286,8 +286,8 @@ def transform():
         'dim_payment_type': create_dim_payment_type(df_payment_type)}
     fact_sales_order = {
         'fact_sales_order': create_fact_sales_order(df_sales_order)}
-    fact_purchase_order = {
-        'fact_purchase_orders': create_fact_purchase_order(df_purchase_order)}
+    fact_purchase_orders = {
+        'fact_purchase_order': create_fact_purchase_order(df_purchase_order)}
     fact_payment = {'fact_payment': create_fact_payment(df_payment)}
 
     """

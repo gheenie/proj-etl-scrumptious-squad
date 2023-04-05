@@ -9,5 +9,5 @@ sudo service psql start
 
 3. Run the following command 
 ```
-./run_seed_ext_test_db.sh
+`./run_seed_ext_test_db.sh`
 ```

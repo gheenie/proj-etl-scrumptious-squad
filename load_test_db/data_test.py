@@ -12,7 +12,7 @@ dim_date = pd.DataFrame({
     'quarter': [1, 1]
 })
 
-hello_df = pd.DataFrame({'hello' : ['world']})
+hello_df = pd.DataFrame({'hello': ['world']})
 dim_currency = pd.DataFrame({
     'currency_id': [0, 1],
     'currency_code': ['GBP', 'USD'],
