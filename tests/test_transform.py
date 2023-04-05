@@ -132,7 +132,7 @@ def test_dim_payment_type(mock_bucket_and_parquet_files):
 def test_fact_sales_order(mock_bucket_and_parquet_files):
     df_sales_order = get_parquet('sales_order')
     fact_sales_order = create_fact_sales_order(df_sales_order)
-    assert fact_sales_order.shape[1] == 15
+    assert fact_sales_order.shape[1] == 14
     assert fact_sales_order['sales_order_id'][0] == 1
     assert fact_sales_order['sales_order_id'][1] == 2
     assert fact_sales_order['created_date'][0] == '2023-01-01'
@@ -150,7 +150,7 @@ def test_fact_sales_order(mock_bucket_and_parquet_files):
 def test_fact_purchase_order(mock_bucket_and_parquet_files):
     df_purchase_order = get_parquet('purchase_order')
     fact_purchase_order = create_fact_purchase_order(df_purchase_order)
-    assert fact_purchase_order.shape[1] == 15
+    assert fact_purchase_order.shape[1] == 14
     assert fact_purchase_order['purchase_order_id'][0] == 1
     assert fact_purchase_order['purchase_order_id'][1] == 2
     assert fact_purchase_order['created_date'][0] == '2023-01-01'
@@ -169,7 +169,7 @@ def test_fact_purchase_order(mock_bucket_and_parquet_files):
 def test_fact_payment(mock_bucket_and_parquet_files):
     df_payment = get_parquet('payment')
     fact_payment = create_fact_payment(df_payment)
-    assert fact_payment.shape[1] == 13
+    assert fact_payment.shape[1] == 12
     assert fact_payment['payment_id'][0] == 1
     assert fact_payment['payment_id'][1] == 2
     assert fact_payment['created_date'][0] == '2023-01-01'

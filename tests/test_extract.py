@@ -32,7 +32,6 @@ import pandas as pd
 @pytest.fixture(scope='function')
 def aws_credentials():
     """Mocks AWS Credentials for moto."""
-
     os.environ['AWS_ACCESS_KEY_ID'] = 'test'
     os.environ['AWS_SECRET_ACCESS_KEY'] = 'test'
     os.environ['AWS_SECURITY_TOKEN'] = 'test'
@@ -60,12 +59,7 @@ def test_pull_secrets_returns_correct_secrets(premock_secretsmanager):
     entry_test_db()
 
     # Retrieve secrets using the hardcoded identifier
-    details = pull_secrets('github_actions_DB')
-    database = details['database']
-    user = details['user']
-    password = details['password']
-    host = details['host']
-    port = details['port']
+    database, user, password, host, port = pull_secrets('github_actions_DB')
 
     assert user == 'github_actions_user'
     assert password == 'github_actions_password'
