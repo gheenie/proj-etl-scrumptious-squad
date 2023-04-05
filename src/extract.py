@@ -43,7 +43,13 @@ def pull_secrets(secret_name='source_DB'):
             'host': secrets['host'],
             'port': secrets['port']
         }
-        return details['database'], details['user'], details['password'], details['host'], details['port']
+        return (
+            details['database'],
+            details['user'],
+            details['password'],
+            details['host'],
+            details['port']
+        )
 
 
 def make_connection(dotenv_path_string):
