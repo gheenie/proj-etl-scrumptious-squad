@@ -1,5 +1,9 @@
 # scrumptious-squad-de-jan-23-proj
 
+This project performs Extract-Transform-Load on a transactional database to extract, remodel and store its data into a different analytical database.
+
+<br />
+
 ## When setting up the project for the first time:
 
 <br />
@@ -61,8 +65,8 @@ make run-checks
 <br />
 
 6. In your GitHub repo's secrets, make two new secrets. This is to enable CI/CD via GitHub Actions
-    1. Name the first AWS_ACCESS_KEY, and in its contents copy-paste your AWS access key.
-    2. Name the second AWS_SECRET_KEY, and in its contents copy-paste your AWS secret key.
+    1. Name the first `AWS_ACCESS_KEY`, and in its contents copy-paste your AWS access key.
+    2. Name the second `AWS_SECRET_KEY`, and in its contents copy-paste your AWS secret key.
 
 <br />
 
@@ -74,7 +78,7 @@ make run-checks
 
 <br />
 
-8. Create .env files to store your database credentials in a hidden way. Development credentials will be uploaded to AWS SecretsManager in the next step, which is required for the actual apps to work. Test .env files is required for tests
+8. Create .env files to store your database credentials in a hidden way. Development credentials will be uploaded to AWS SecretsManager in the next step, which is required for the actual apps to work. Test .env files are required for tests
     1. For seed Totesys credentials, run the following from PROJECT ROOT, replacing the capitalised variables with your credentials:
     ```sh
     mkdir -p config
@@ -107,7 +111,14 @@ make run-checks
     
     ```
 
-9. 
+9. Upload the development credentials you just stored to AWS SecretsManager by running this script:
+```sh
+source venv/bin/activate
+export PYTHONPATH=$(pwd)
+python src/set_up/run_make_secrets.py
+```
+
+<br />
 
 ## When working with the repo:
 
@@ -115,7 +126,7 @@ make run-checks
 
 - Every time you come back to work on the repo (e.g. you've closed your IDE), activate your virtual environment (set up in step 3) 
 and set the correct path for importing packages with:
-```
+```sh
 source venv/bin/activate
 export PYTHONPATH=$(pwd)
 ```
@@ -133,4 +144,4 @@ deactivate
 
 - Follow step 4 again, but between 4e and 4f, in both `terraform/create_secrets_bucket` and `terraform/`,
 delete any folders and files beginning with `.terraform` and any `terraform.tfstate` files.
-- Retry this if step 4f fails.
+- Retry this step once more if step 4f fails.
