@@ -1,0 +1,14 @@
+3 main parts to our operations - the setup, our development and our CI/CD pipeline
+
+for our setup
+automate as much manual steps - mini bash scripts
+
+during our development
+use tool called terraform
+IaC which means - Terraform scripts - deploy aws infrastructure
+
+finally we built our CI/CD pipeline w github actions and a yaml script
+when we upload our code,
+our tests AND our terraform scripts run AUTOMATICALLY on a github provided machine - achieving 
+
+that's our devops . melanie will now present some data as a result of our projects
