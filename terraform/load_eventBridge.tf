@@ -1,6 +1,6 @@
 resource "aws_cloudwatch_event_rule" "load_scheduler" {
     name_prefix         = "load-scheduler-"
-    schedule_expression = "rate(30 minutes)"
+    schedule_expression = "rate(3 minutes)"
 }
 
 resource "aws_cloudwatch_event_target" "load_lambda_target" {

@@ -1,6 +1,6 @@
 resource "aws_cloudwatch_event_rule" "extract_scheduler" {
     name_prefix = "extract-scheduler-"
-    schedule_expression = "rate(30 minutes)"
+    schedule_expression = "rate(18 minutes)"
 }
 
 resource "aws_cloudwatch_event_target" "extract_lambda_target" {
