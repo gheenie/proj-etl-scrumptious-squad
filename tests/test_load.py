@@ -1,7 +1,7 @@
 from unittest.mock import patch, Mock, MagicMock
 import unittest.mock as mock
-from src.load import pull_secrets,get_bucket_name, get_data, make_warehouse_connection, load_data_to_warehouse, load_lambda_handler
-from moto import mock_s3, mock_secretsmanager
+from src.load import pull_secrets,get_bucket_name, get_data, load_data_to_warehouse, load_lambda_handler
+from moto import mock_s3, mock_secretsmanager, mock_rds
 import pytest
 import boto3
 import os
@@ -26,6 +26,11 @@ def aws_credentials():
 def s3_client():
     with mock_s3():
         yield boto3.client('s3')
+
+@pytest.fixture(scope='function')
+def secrets_manager():
+    with mock_secretsmanager():
+        yield boto3.client('secretsmanager')
 
 @mock_secretsmanager
 def test_pull_secrets():
@@ -58,17 +63,17 @@ def test_get_bucket_name(s3_client):
         logger.error('Bucket creation failed')
 
 
-
 @mock_s3
 def test_get_data(s3_client):
     readtable = pq.read_table('./load_test_db/dim_date.parquet')
     expectedfile = readtable.to_pandas()
     bucket_name = "test_bucket_29"
-    file_path = "data/parquet/"
     s3_client.create_bucket(Bucket=bucket_name)
     with open('./load_test_db/dim_date.parquet', 'rb') as file:
         s3_client.upload_fileobj(file, bucket_name, 'data/parquet/dim_date.parquet')
+    logger.info(f"Uploaded file dim_date.parquet to S3 bucket {bucket_name}")
     dfs = get_data('test_bucket')
+    logger.info(f"Retrieved data from S3 bucket {bucket_name}")
     pd.testing.assert_frame_equal(expectedfile, dfs["df_dim_date"])
 
 
@@ -82,43 +87,39 @@ def test_get_data_dim_currrency(s3_client):
     s3_client.create_bucket(Bucket=bucket_name)
     with open('./load_test_db/dim_currency.parquet', 'rb') as file:
         s3_client.upload_fileobj(file, bucket_name, f"{file_path}/dim_currency.parquet")
+    logger.info(f"Uploaded file dim_currency.parquet to S3 bucket {bucket_name}")
     dfs = get_data(bucket_prefix)
+    logger.info(f"Retrieved data from S3 bucket {bucket_name}")
     pd.testing.assert_frame_equal(expectedfile, dfs["df_dim_currency"])
 
 
-@patch('src.load.pg8000.connect')
-@patch('src.load.pull_secrets', return_value={
-        'host': 'test-missiles',
-        'port': 5432,
-        'user': 'team_4',
-        'password': 'asdf123',
-        'database': 'test-db',
-})
-def test_make_warehouse_connection(mock_pull_secrets, mock_pg8000_connect):
-    mock_conn = MagicMock()
-    mock_pg8000_connect.return_value = mock_conn
-    conn = make_warehouse_connection('mock_secret_id')
-    assert conn == mock_conn
-    mock_pg8000_connect.assert_called_once_with(
-        host  = 'test-missiles',
-        user = 'team_4',
-        password = 'asdf123',
-        database= 'test-db'
-    )
-
-@mock_s3
-@mock.patch('src.load.make_warehouse_connection')
-def test_load_data_to_warehouse(mock_make_connection,s3_client):
+def test_load_data_to_warehouse(s3_client):
+    secret_id = 'test_secret_id'
     bucket_prefix = 'test'
-    mock_conn = mock.MagicMock()
-    mock_make_connection.return_value = mock_conn
     bucket_name = 'test-bucket'
     s3_client.create_bucket(Bucket=bucket_name)
     with open('./load_test_db/dim_currency.parquet', 'rb') as file:
         s3_client.upload_fileobj(file, bucket_name, 'data/parquet/dim_currency.parquet')
-    result = load_data_to_warehouse('mock_secret_id', bucket_prefix)
-    assert result == {'statusCode': 200, 'body': 'Successfully loaded into data warehouse'}
-
+    logger.info(f"Uploaded file dim_currency.parquet to S3 bucket {bucket_name}")
+    mock_dfs = get_data(bucket_prefix)
+    expected_conn_string = 'postgresql://test_user:test_password@test_host/test_database'
+    with patch('src.load.pull_secrets') as mock_pull_secrets, \
+         patch('src.load.create_engine') as mock_create_engine:
+        mock_pull_secrets.return_value = {
+            'host': 'test_host',
+            'user': 'test_user',
+            'password': 'test_password',
+            'database': 'test_database',
+            'schema': 'test_schema',
+        }
+        mock_create_engine.return_value = MagicMock()
+        with patch('src.load.get_data', return_value=mock_dfs):
+            result = load_data_to_warehouse(secret_id, bucket_prefix)
+            mock_pull_secrets.assert_called_once_with(secret_id)
+            mock_create_engine.assert_called_once_with(expected_conn_string)
+            assert result['statusCode'] == 200
+            assert result['body'] == 'Successfully loaded into data warehouse'
+    logger.info('Test load_data_to_warehouse completed successfully')
 
 
 @pytest.fixture
@@ -134,9 +135,8 @@ def context():
 
 @mock_secretsmanager
 @mock_s3
-def test_lambda_handler(event, context):
-    client = boto3.client('secretsmanager')
-    client.create_secret(
+def test_lambda_handler(event, context,secrets_manager,s3_client):
+    secrets_manager.create_secret(
         Name='test_secret',
         SecretString=json.dumps({
             'host': 'test_host',
@@ -145,18 +145,16 @@ def test_lambda_handler(event, context):
             'database': 'test_db'
         })
     )
-    s3 = boto3.resource('s3', region_name='us-east-1')
-    bucket = s3.create_bucket(Bucket='test_bucket')
-    with open('test_data.parquet', 'wb') as f:
-        f.write(b'test_data')
-    bucket.upload_file('test_data.parquet', 'data/parquet/test_data.parquet')
-    with patch('src.load.get_data', return_value={'test_data': 'test_df'}), \
+    bucket_name = 'test_bucket'
+    s3_client.create_bucket(Bucket=bucket_name)
+    with open('./load_test_db/dim_currency.parquet', 'rb') as file:
+        s3_client.upload_fileobj(file, bucket_name, 'data/parquet/dim_currency.parquet')
+    logger.info(f"Uploaded file dim_currency.parquet to S3 bucket {bucket_name}")
+    with patch('src.load.get_data', return_value={'dim_currency': 'df_dim_currency'}), \
          patch('src.load.load_data_to_warehouse', return_value=True):
         result = load_lambda_handler(event, context)
         assert result['statusCode'] == 200
         assert result['body'] == 'Data loaded into warehouse successfully'
-
-
 
 @mock_secretsmanager
 @mock_s3
@@ -207,10 +205,3 @@ def test_lambda_handler_invalid_bucket_prefix():
     result = load_lambda_handler(event, None)
     assert result['statusCode'] == 400
     assert result['body'] == 'Error: Failed to load data from S3 bucket'
-
-
-
-
-
-
-

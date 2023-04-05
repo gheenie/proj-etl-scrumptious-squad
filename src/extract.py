@@ -54,7 +54,7 @@ def make_connection(dotenv_path_string):
     load_dotenv(dotenv_path=dotenv_path)
 
     if dotenv_path_string.endswith('development'):
-        user, password, database, host, port = pull_secrets()
+        database, user, password, host, port = pull_secrets()
         conn = pg8000.connect(
             database=database,
             user=user,

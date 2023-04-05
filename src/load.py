@@ -3,7 +3,13 @@ import boto3
 import pyarrow.parquet as pq
 import io
 import json
+import logging
 from botocore.exceptions import ClientError
+from sqlalchemy import create_engine
+
+logger = logging.getLogger('mylogger')
+logger.setLevel(logging.INFO)
+
 
 def pull_secrets(secret_id):
     secret_manager = boto3.client("secretsmanager")
@@ -60,49 +66,38 @@ def get_data(bucket_prefix):
         print(f"An error occurred: {e}")
         return []
 
-def make_warehouse_connection(secret_id):
+    
+def load_data_to_warehouse(secret_id, bucket_prefix):
     try:
+        dfs = get_data(bucket_prefix)
+        if not dfs:
+            return False
+        # Pulls secrets but doesn't connect to the warehouse yet
         details = pull_secrets(secret_id)
         API_HOST = details['host']
         API_USER = details['user']
         API_PASS = details['password']
         API_DBASE = details['database']
-        conn = pg8000.connect(
-            host=API_HOST,
-            user=API_USER,
-            password=API_PASS,
-            database=API_DBASE
-        )
-        return conn
-    except Exception as e:
-        print(f"Error connecting to the data warehouse: {str(e)}")
-        return None
-    
+        API_SCHEMA = details['schema']
+        # Specifies postgreSQL as the database, then its config
+        conn_string = f'postgresql://{API_USER}:{API_PASS}@{API_HOST}/{API_DBASE}'
+        db_engine = create_engine(conn_string)
 
-def load_data_to_warehouse(secret_id, bucket_prefix):
-    try:
-        conn = make_warehouse_connection(secret_id)
-        if not conn:
-            return False
-        
-        dfs = get_data(bucket_prefix)
-        if not dfs:
-            return False
-        
-        with conn.cursor() as cursor:
-            for table in dfs:
-                table_name = table[3:]
-                print(f"Loading table {table_name}")
-                for row in dfs[table].itertuples(index=False):
-                    values = ', '.join(['%s'] * len(row))
-                    columns = ', '.join(row._fields)
-                    sql = f"INSERT INTO {table_name} ({columns}) VALUES ({values})"
-                    cursor.execute(sql, row)
-                    conn.commit()
-                print(f"Data loaded into table {table_name}")
-                
-        cursor.close()
-        conn.close()
+        for table in dfs:
+            table_name = table[3:]
+            logger.info(f"Loading table {table_name}")
+            table_as_dataframe = dfs[table]
+            logger.debug(f"DataFrame for {table_name}: {table_as_dataframe}")
+            table_as_dataframe.to_sql(
+                table_name,
+                schema=API_SCHEMA,
+                con=db_engine,
+                if_exists='append',
+                index=False,
+                chunksize=1000,
+                method='multi'
+            )
+        logger.info("Successfully loaded data into the data warehouse")
         return {
             'statusCode': 200,
             'body': 'Successfully loaded into data warehouse'
