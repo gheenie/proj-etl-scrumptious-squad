@@ -1,11 +1,14 @@
 resource "aws_cloudwatch_event_rule" "extract_scheduler" {
     name_prefix = "extract-scheduler-"
-    schedule_expression = "rate(1 minute)"
+    schedule_expression = "rate(18 minutes)"
 }
 
 resource "aws_cloudwatch_event_target" "extract_lambda_target" {
     rule = aws_cloudwatch_event_rule.extract_scheduler.name
     arn  = aws_lambda_function.extract_lambda.arn
+    input = jsonencode({
+        "dotenv_path_string": "config/.env.development"
+    })
 }
 
 resource "aws_lambda_permission" "allow_extract_scheduler" {

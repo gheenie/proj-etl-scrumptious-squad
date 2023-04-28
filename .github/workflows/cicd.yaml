@@ -3,62 +3,121 @@
 name: deploy-etl-apps
 
 on:
+  # Allows manual triggers on GitHub
   workflow_dispatch:
+  # Triggers jobs on push to GitHub main branch
+  push:
+    branches:
+      - main
+  # # Triggers jobs on push to any GitHub branch
   # push:
-  #   branches:
-  #     - main
 
 jobs:
+  # Label of the run-tests job
   run-tests:
-    name: Setup environment and run tests
+    # You must use a Linux environment when using service containers or container jobs
     runs-on: ubuntu-latest
+
+    # Service containers to run with `run-tests`.
+    # Provides PostgreSQL so that we don't have to manually install and setup
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          # Maps tcp port 5432 on the service container to the host
+          - 5432:5432
+
+    # Actions and CLI commands to run for the job
     steps:
+      # Downloads a copy of the code in your repository before running CI tests
       - name: Checkout Repo
         uses: actions/checkout@v3
+      # Installs Python
       - name: Get Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
+      # Installs Make
       - name: Install Make
         run: sudo apt install make -y
-      - name: Install dependencies and run checks
-        run: make all
+      # Performs a clean installation of all dependencies in the `requirements.txt` file
+      # and other dependencies specified in the Makefile
+      - name: Install dependencies
+        run: make requirements
+      # Seed the test Totesys database using the service container's credentials
+      - name: Seed Totesys database
+        run: PGPASSWORD=postgres psql -f ./extraction_test_db/test_db_setup/setup_test_db.sql -p 5432 -h localhost -U postgres
+      # Seed the test Northcoders warehouse using the service container's credentials
+      - name: Seed Northcoders warehouse
+        run: PGPASSWORD=postgres psql -f ./load_test_warehouse_setup/test_warehouse_setup/setup_test_warehouse.sql -p 5432 -h localhost -U postgres
+      # Create the .env file for tests, and the required parent directories
+      - run: mkdir -p config
+      - run: touch config/.env.test
+      - run: echo 'database=test_totesys' >> config/.env.test 
+      - run: echo 'user=postgres' >> config/.env.test
+      - run: echo 'password=postgres' >> config/.env.test
+      # Run tests
+      - name: Run pytest
+        run: make unit-test
   
+  # Label of the Continuous Deployment job
   deployment:
-    name: deployment
+    # Uses a Linux environment to match our development environment
     runs-on: ubuntu-latest
+
+    # Forces this job to run only after the run-tests job is complete
     needs: run-tests
+
+    # Actions and CLI commands to run for the job
     steps:
+      # Downloads a copy of the code in your repository before running CD Terraforming
       - name: Checkout Repo
         uses: actions/checkout@v3
+      # Installs Terraform
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
+      # Sets AWS credentials for Terraform.
+      # These are pulled from project's GitHub settings
       - name: Configure Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
           aws-region: us-east-1
-      - name: create tfstate bucket - Terraform Init
+      # Start Terraforming the S3 bucket to act as a backend for .tfstate
+      - name: Create tfstate bucket - Terraform Init
         run: terraform init
         working-directory: ./terraform/create_secrets_bucket
-      - name: create tfstate bucket - Terraform Apply
+      - name: Create tfstate bucket - Terraform Apply
         run: terraform apply -auto-approve
         working-directory: ./terraform/create_secrets_bucket
-        # Will fail if bucket exists in your account OR in the internet.
-        # Ignore the error, if the existing bucket is not yours the later code will fail anyway.
+        # Ignores any error in this run.
+        # This run will fail if the bucket exists in your account OR in the internet,
+        # but if the existing bucket is not yours the following Terraforming will fail anyway
         continue-on-error: true
-      - name: main Terraform Init
+      # Start the main Terraforming
+      - name: Main Terraform Init
         run: terraform init
         working-directory: ./terraform
-      - name: main Terraform Plan
-        id: plan
+      - name: Main Terraform Plan
         run: terraform plan
         working-directory: ./terraform
-      - name: main Terraform Plan Status
+        id: plan
+      ## Make GitHub Actions fail if Terraform plan returns errors
+      - name: Main Terraform Plan Status
         if: steps.plan.outcome == 'failure'
         run: exit 1
-        working-directory: ./terraform
-      - name: main Terraform Apply
+      - name: Main Terraform Apply
         run: terraform apply -auto-approve
         working-directory: ./terraform

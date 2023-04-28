@@ -1,6 +1,6 @@
 resource "aws_cloudwatch_event_rule" "transform_scheduler" {
     name_prefix = "transform-scheduler-"
-    schedule_expression = "rate(1 minute)"
+    schedule_expression = "rate(8 minutes)"
 }
 
 resource "aws_cloudwatch_event_target" "transform_lambda_target" {
