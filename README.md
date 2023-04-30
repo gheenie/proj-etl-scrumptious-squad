@@ -124,11 +124,11 @@ python src/set_up/run_make_secrets.py
 
 <br />
 
-- Every time you come back to work on the repo (e.g. you've closed your IDE), activate your virtual environment (set up in step 3) 
-and set the correct path for importing packages with:
+- Every time you come back to work on the repo (e.g. you've closed your IDE), activate your virtual environment (set up in step 3), set the correct path for importing packages and ensure PostgreSQL is started on your computer with:
 ```sh
 source venv/bin/activate
 export PYTHONPATH=$(pwd)
+sudo service postgresql start
 ```
 
 - When you've finished working, deactivate your virtual environment:
