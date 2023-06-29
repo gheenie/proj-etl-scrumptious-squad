@@ -55,7 +55,7 @@ def make_connection(dotenv_path_string):
    Creates link to the data lake
     """
     dotenv_path = Path(dotenv_path_string)
-    load_dotenv(dotenv_path=dotenv_path)
+    load_dotenv(dotenv_path=dotenv_path, override=True)
 
     if dotenv_path_string.endswith('development'):
         details = pull_secrets()
