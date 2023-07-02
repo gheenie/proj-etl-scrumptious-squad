@@ -96,7 +96,7 @@ def test_updating_an_existing_row(create_warehouse_secrets, premock_s3, mock_buc
     dbcur = conn.cursor()
     query_string = '''UPDATE payment
                       SET payment_amount = 50.00, last_updated = '2023-02-02 02:22:22'
-                      WHERE payment_id = 1;
+                      WHERE payment_id = 3;
                    '''
     dbcur.execute(query_string)
 
