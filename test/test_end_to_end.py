@@ -5,7 +5,10 @@ import boto3
 from pathlib import Path
 from dotenv import load_dotenv
 import json
-from src.extract import extract_lambda_handler
+from src.extract import (
+    extract_lambda_handler,
+    make_connection
+)
 from src.transform import transform_lambda_handler
 from src.load import load_lambda_handler
 
@@ -84,53 +87,33 @@ def test_updating_an_existing_row(create_warehouse_secrets, premock_s3, mock_buc
         "bucket_prefix": "scrumptious-squad-pr-data-"
     }, None)
 
+    # Check that the loading was successful
     assert response['statusCode'] == 200
     assert response['body'] == 'Data loaded into warehouse successfully'
 
-    # # Insert new entries into the seed Totesys database
-    # conn = make_connection('config/.env.test')
-    # dbcur = conn.cursor()
-    # query_string = '''INSERT INTO sales_order
-    #                   (sales_order_id, created_at, last_updated, design_id,
-    #                     staff_id, counterparty_id, units_sold, unit_price,
-    #                     currency_id, agreed_delivery_date, agreed_payment_date,
-    #                     agreed_delivery_location_id)
-    #                   VALUES
-    #                   (7, '2023-02-02 11:30:00.000000',
-    #                   '2023-01-01 10:00:00.000000', 1, 4, 3, 50, 6.00, 2,
-    #                   '2023-09-09', '2023-09-09', 5),
-    #                   (8, '2023-01-01 10:00:00.000000',
-    #                   '2023-03-03 08:45:00.000000', 7, 3, 2, 40, 5.00, 3,
-    #                   '2023-09-09', '2023-09-09', 1),
-    #                   (9, '2023-01-01 10:00:00.000000',
-    #                   '2023-01-01 10:00:00.000000', 4, 2, 1, 30, 4.00, 1,
-    #                   '2023-09-09', '2023-09-09', 3);
-    #                '''
-    # dbcur.execute(query_string)
+    # Update an existing entry in the seed Totesys database
+    conn = make_connection('config/.env.test')
+    dbcur = conn.cursor()
+    query_string = '''UPDATE payment
+                      SET payment_amount = 50.00, last_updated = '2023-02-02 02:22:22'
+                      WHERE payment_id = 1;
+                   '''
+    dbcur.execute(query_string)
 
-    # tables = (
-    #     ['address'],
-    #     ['counterparty'],
-    #     ['currency'],
-    #     ['department'],
-    #     ['design'],
-    #     ['payment_type'],
-    #     ['payment'],
-    #     ['purchase_order'],
-    #     ['sales_order'],
-    #     ['staff'],
-    #     ['transaction']
-    # )
+    # Execute ETL once with the updated Totesys database
+    extract_lambda_handler({'dotenv_path_string': 'config/.env.test'})
+    transform_lambda_handler(None, None)
+    response = load_lambda_handler({
+        "secret_id": "warehouse_secrets",
+        "bucket_prefix": "scrumptious-squad-pr-data-"
+    }, None)
+
+    # Check that the loading was successful
+    assert response['statusCode'] == 200
+    assert response['body'] == 'Data loaded into warehouse successfully'
+
     # # Get full bucket name from a prefix
     # bucketname = get_bucket_name('scrumptious-squad-in-data-')
-    # # Get the rows to be added to .parquet files for table df in a dict.
-    # # dbcur is pointing to the updated seed database
-    # to_be_added = check_each_table(tables, dbcur, bucketname)
-
-    # # Convert the rows to be added for each table from DataFrames to parquets
-    # # and upload to an S3 bucket
-    # add_updates(to_be_added, bucketname)
-
     # # Get the response JSON from listing an S3 bucket's contents
     # response = get_file_info_in_bucket(bucketname)
     # # Get the data from .parquets in an S3 bucket as DataFrames
