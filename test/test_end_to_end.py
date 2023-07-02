@@ -73,16 +73,10 @@ def create_warehouse_secrets(premock_secretsmanager):
 
 def test_updating_an_existing_row(create_warehouse_secrets, premock_s3, mock_bucket):
     """
-    See test_push_to_cloud_and_add_updates_uploads_to_s3().
-
-    Now both methods are called after one extraction.
-
-    This test does inspect the content of the uploaded files.
-
-    Currently only one table is updated in this test.
+    Changes an existing row and tests if a new row is created in the warehouse.
     """
 
-    # Execute extraction once with the default seed Totesys database
+    # Execute ETL once with the default seed Totesys database
     extract_lambda_handler({'dotenv_path_string': 'config/.env.test'})
     transform_lambda_handler(None, None)
     response = load_lambda_handler({
