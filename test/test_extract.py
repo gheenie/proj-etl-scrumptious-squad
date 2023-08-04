@@ -6,6 +6,13 @@ To form further assertion statements, refer to the seeded data
 in extraction-test-db/setup-test-db.txt
 """
 
+import os
+from unittest.mock import patch
+
+from moto import (mock_secretsmanager, mock_s3)
+import pytest
+import boto3
+import pandas as pd
 
 from src.extract import (
     pull_secrets,
@@ -20,13 +27,9 @@ from src.extract import (
     get_most_recent_time,
     get_file_info_in_bucket
 )
-import os
-from moto import (mock_secretsmanager, mock_s3)
-import pytest
-import boto3
-from unittest.mock import patch
-from src.set_up.make_secrets import (entry_test_db)
-import pandas as pd
+from src.set_up.make_secrets import (
+    entry_test_db
+)
 
 
 @pytest.fixture(scope='function')
