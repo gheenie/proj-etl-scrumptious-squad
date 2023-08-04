@@ -1,0 +1,513 @@
+{
+    "Stop": [
+        {
+            "author": {
+                "name": "Dinesh Nimmagadda",
+                "email": "dinesh.nimmagadda@outlook.com"
+            },
+            "content": "Don't thinks life is not fair\n",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:33:46.712Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Dinesh Nimmagadda",
+                "email": "dinesh.nimmagadda@outlook.com"
+            },
+            "content": "Don't underestimate other\n",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:38:33.676Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Melanie Gines Cooke",
+                "email": "mginescooke@gmail.com"
+            },
+            "content": "Working on the main branch",
+            "group": null,
+            "votes": 1,
+            "date": "2023-04-06T08:27:40.718Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Melanie Gines Cooke",
+                "email": "mginescooke@gmail.com"
+            },
+            "content": "Overlapping on the work covered ",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:28:34.287Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Naomi Bilder",
+                "email": "nusya770@gmail.com"
+            },
+            "content": "working after working hours",
+            "group": null,
+            "votes": 1,
+            "date": "2023-04-06T08:25:21.238Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Naomi Bilder",
+                "email": "nusya770@gmail.com"
+            },
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:32:14.723Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Naomi Bilder",
+                "email": "nusya770@gmail.com"
+            },
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:33:13.693Z",
+            "comments": []
+        }
+    ],
+    "Bad": [
+        {
+            "author": {
+                "name": "Alex Leigh",
+                "email": "alex.leigh.work@gmail.com"
+            },
+            "content": "Should have had a better system for sharing jobs",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:30:46.560Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Alex Leigh",
+                "email": "alex.leigh.work@gmail.com"
+            },
+            "content": "Could have integrated learning with jobs better rather than focusing on \nefficiency",
+            "group": null,
+            "votes": 1,
+            "date": "2023-04-06T08:32:05.057Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Alex Leigh",
+                "email": "alex.leigh.work@gmail.com"
+            },
+            "content": "Better Technical Planning",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:34:01.733Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Dinesh Nimmagadda",
+                "email": "dinesh.nimmagadda@outlook.com"
+            },
+            "content": "its nothing bad\n",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:32:02.523Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Melanie Gines Cooke",
+                "email": "mginescooke@gmail.com"
+            },
+            "content": "Merge conflicts",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:30:55.119Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Naomi Bilder",
+                "email": "nusya770@gmail.com"
+            },
+            "content": "changes in the code without proper update \n",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:24:05.997Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Naomi Bilder",
+                "email": "nusya770@gmail.com"
+            },
+            "content": "not using TDD",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:28:50.894Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Thalia DeVoe",
+                "email": "thaliadevoe@gmail.com"
+            },
+            "content": "Large changes having to be merged",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:28:57.098Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "gee",
+                "email": "sbx_94@hotmail.com"
+            },
+            "content": "Difficulties merging large changes",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:29:10.134Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "gee",
+                "email": "sbx_94@hotmail.com"
+            },
+            "content": "Explaining difficult concepts over Zoom",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:31:51.242Z",
+            "comments": []
+        }
+    ],
+    "Good": [
+        {
+            "author": {
+                "name": "Alex Leigh",
+                "email": "alex.leigh.work@gmail.com"
+            },
+            "content": "Avoided pointless conflicts well and stayed on task",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:30:23.848Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Alex Leigh",
+                "email": "alex.leigh.work@gmail.com"
+            },
+            "content": "Great Team Working Skills\n",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:34:48.199Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Alex Leigh",
+                "email": "alex.leigh.work@gmail.com"
+            },
+            "content": "Adapted well when mistakes were made\n",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:37:29.178Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Dinesh Nimmagadda",
+                "email": "dinesh.nimmagadda@outlook.com"
+            },
+            "content": "hello squad, welcome to the world of hell",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:13:48.086Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Dinesh Nimmagadda",
+                "email": "dinesh.nimmagadda@outlook.com"
+            },
+            "content": "its good working in pairs and teams\n",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:30:31.551Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Dinesh Nimmagadda",
+                "email": "dinesh.nimmagadda@outlook.com"
+            },
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:31:37.023Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Melanie Gines Cooke",
+                "email": "mginescooke@gmail.com"
+            },
+            "content": "Good overall level of achievement  ",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:24:03.043Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Melanie Gines Cooke",
+                "email": "mginescooke@gmail.com"
+            },
+            "content": "Everyone pulled their weight",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:25:06.687Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Melanie Gines Cooke",
+                "email": "mginescooke@gmail.com"
+            },
+            "content": "Really good technical knowledge from the members",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:25:39.514Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Melanie Gines Cooke",
+                "email": "mginescooke@gmail.com"
+            },
+            "content": "Generally the Kanban board was good",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:26:43.619Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Naomi Bilder",
+                "email": "nusya770@gmail.com"
+            },
+            "content": "Team spirit",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:16:27.275Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Naomi Bilder",
+                "email": "nusya770@gmail.com"
+            },
+            "content": "got better understanding of how aws tools are working",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:26:53.620Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Naomi Bilder",
+                "email": "nusya770@gmail.com"
+            },
+            "content": "using Trello really helped to organise the things and to get clear understanding what we need to do",
+            "group": null,
+            "votes": 2,
+            "date": "2023-04-06T08:31:18.274Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Thalia DeVoe",
+                "email": "thaliadevoe@gmail.com"
+            },
+            "content": "Regular meetups and updating each other",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:24:28.120Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Thalia DeVoe",
+                "email": "thaliadevoe@gmail.com"
+            },
+            "content": "Pairing and working to resolve issues",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:30:58.089Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Thalia DeVoe",
+                "email": "thaliadevoe@gmail.com"
+            },
+            "content": "Utilising each other's knowledge and skill sets",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:31:18.067Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "gee",
+                "email": "sbx_94@hotmail.com"
+            },
+            "content": "improved our workflow as time went on",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:20:53.061Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "gee",
+                "email": "sbx_94@hotmail.com"
+            },
+            "content": "Spent time to fully understand project spec",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:31:21.672Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "gee",
+                "email": "sbx_94@hotmail.com"
+            },
+            "content": "Pivoted to pair programming",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:33:17.534Z",
+            "comments": []
+        }
+    ],
+    "Start": [
+        {
+            "author": {
+                "name": "Alex Leigh",
+                "email": "alex.leigh.work@gmail.com"
+            },
+            "content": "More planning\n",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:32:32.460Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Alex Leigh",
+                "email": "alex.leigh.work@gmail.com"
+            },
+            "content": "More technical catch-ups",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:33:02.133Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Dinesh Nimmagadda",
+                "email": "dinesh.nimmagadda@outlook.com"
+            },
+            "content": "start with proper data modelling plan",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:32:49.050Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Melanie Gines Cooke",
+                "email": "mginescooke@gmail.com"
+            },
+            "content": "Better descriptions in the tickets",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:29:32.110Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Melanie Gines Cooke",
+                "email": "mginescooke@gmail.com"
+            },
+            "content": "Better communication about the scope of the ticket you are doing to avoid clashes",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:29:44.010Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Melanie Gines Cooke",
+                "email": "mginescooke@gmail.com"
+            },
+            "content": "Working on our own branch and only doing what is allocated to our ticket",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:30:22.092Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Naomi Bilder",
+                "email": "nusya770@gmail.com"
+            },
+            "content": "communicate better with a team members",
+            "group": null,
+            "votes": 1,
+            "date": "2023-04-06T08:26:30.171Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Naomi Bilder",
+                "email": "nusya770@gmail.com"
+            },
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:29:44.390Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "Thalia DeVoe",
+                "email": "thaliadevoe@gmail.com"
+            },
+            "content": "Communication of changes prior to the change",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:26:54.719Z",
+            "comments": []
+        },
+        {
+            "author": {
+                "name": "gee",
+                "email": "sbx_94@hotmail.com"
+            },
+            "content": "Pep8-ing our own code right from the start",
+            "group": null,
+            "votes": 0,
+            "date": "2023-04-06T08:29:49.315Z",
+            "comments": []
+        }
+    ],
+    "Actions": []
+}
