@@ -1,0 +1,54 @@
+general infrastructure 
+-data
+-iam policies
+-roles
+-s3 buckets - ingestion, processed
+-lambdas
+-eventbridge
+-alerts
+-backend
+
+python app 1
+-reads new/updated data from totesys db - delta, probably wholesale
+-saves data into s3-ingestion - parquet
+-log to cloudwatch
+-tests - seeding db and parquet, moto for logging
+-follow practices - PEP8, sql injection, protecting secrets eg store totesys db credentials as secrets
+
+terraform 1
+
+-be triggered on a schedule - much faster than 30 mins; job scheduler eg AWS EventBridge
+-trigger alerts on errors
+
+python app 2
+-read new/updated data from s3-ingestion - probably wholesale
+-transform data into the new schema - only 'sales' star schema for now
+  -check data types also
+-parquet formatted
+-save to s3-processed
+-log to cloudwatch
+-tests - seeding parquets, moto for logging
+-follow practices - PEP8, sql injection, protecting secrets
+
+terraform 2
+-triggering - either detect completion of python app 1 via s3-ingestion event or job scheduler + 30 min requirement
+-trigger alerts on errors
+
+python app 3
+-read new/updated data from s3-processed - probably wholesale
+-insert into northcoders-warehouse-db
+-log to cloudwatch
+-tests - seeding parquet and db, moto for logging
+-follow practices - PEP8, sql injection, protecting secrets
+
+terraform 3
+-be triggered on a schedule - note 30 min requirements
+-trigger alerts on errors
+
+process
+-python code goes through safety and bandit packages
+-github actions ci/cd
+
+
+-prioritise infrastructure/terraforming so that new infrastructure can be auto deployed on new instances
+-don't worry about Quicksight/sql queries
